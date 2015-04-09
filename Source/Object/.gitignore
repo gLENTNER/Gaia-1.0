@@ -1,0 +1,4 @@
+# this ignore file keeps this directory around but suppresses
+# files from the repository
+*
+!.gitignore

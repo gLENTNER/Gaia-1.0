@@ -1,0 +1,98 @@
+// Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
+// See LICENSE file (GPLv3)
+// Include/Parser.hh
+//
+// This header file contains the class template for the `Parser` object.
+// The purpose of this singleton class is to interpret the arguments passed
+// to `main` at runtime and to read the configuration file, retaining the
+// parameters for retrieval by the other objects.
+
+#ifndef _PARSER_HH_
+#define _PARSER_HH_
+
+#include <vector>
+#include <string>
+#include <map>
+
+namespace GAIA {
+
+class Parser {
+
+public:
+
+	static Parser* GetInstance();
+	static void Release();
+	~Parser(){}
+
+	// set up the simulation environment
+	void Setup(const int argc, const char *argv[]);
+	
+	// retrieval functions, "getters"
+	unsigned long long GetNumParticles() const;
+	int GetNumTrials() const;
+	int GetNumThreads() const;
+	int GetVerbosity() const;
+	bool GetKeepPosFlag() const;
+	bool GetKeepRawFlag() const;
+	bool GetAnalysisFlag() const;
+	bool GetDebuggerFlag() const;
+	std::vector<double> GetXlimits() const;
+	std::vector<double> GetYlimits() const;
+	std::vector<double> GetZlimits() const;
+	std::vector<int> GetXYResolution() const;
+	int GetRadialResolution() const;
+	int GetAnalysisDomain() const;
+	std::string GetOutPath() const;
+	std::string GetRawPath() const;
+	std::string GetTmpPath() const;
+	std::string GetPosPath() const;
+	std::string GetRCFile() const;
+	
+private:
+
+	static Parser* instance;
+	Parser(){}
+
+	// set default values for `argument` map, etc...
+	void SetDefaults();
+	
+	// parse the commands in the configuration (rc) file
+	void ReadRC();
+	
+	// parse the input arguments from `main`
+	void Interpret();
+	
+	// check/assign arguments
+	void Rectify();
+	
+	// helper functions
+	void SetLimits(const std::string&, const std::string&, const std::string&);
+	void SetXY(const std::string&, const std::string&);
+	void SetRadial(const std::string&, const std::string&);
+
+	// maps of parameters
+	std::map<std::string, std::string> argument, implicit;
+	std::map<std::string, bool> given;
+
+	// simulation parameters, see Interpret() for defaults
+	unsigned long long _num_particles;
+	int _verbose, _num_threads, _num_trials, _line_number;
+	bool _keep_raw, _keep_pos, _no_analysis, _debug_mode;
+	std::string _out_path, _raw_path, _tmp_path, _pos_path;
+	std::string _rc_file;
+	
+	// vector for `argv`
+	std::vector<std::string> _cmd_args;
+	
+	// items from rc file
+	std::vector<double> _x_limits, _y_limits, _z_limits;
+	std::vector<int> _xy_resolution;
+	int _radial_resolution, _analysis_domain;
+	
+	bool _given_xlims, _given_ylims, _given_zlims;
+	bool _given_xy, _given_radial;
+};
+
+} // namespace GAIA
+
+#endif
