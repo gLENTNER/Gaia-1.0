@@ -12,7 +12,7 @@
 
 #include <string>
 
-namespace GAIA {
+namespace Gaia {
 
 class Monitor {
 
@@ -48,6 +48,6 @@ private:
 
 };
 
-} // namespace GAIA 
+} // namespace Gaia 
 
 #endif

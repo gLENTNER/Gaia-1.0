@@ -7,7 +7,10 @@
 #ifndef _STRINGS_HH_
 #define _STRINGS_HH_
 
-namespace GAIA {
+#include <string>
+#include <vector>
+
+namespace Gaia {
 	
 // remove all characters after `delim`
 void Clip(std::string &input_string, const std::string &delim){
@@ -64,6 +67,6 @@ void ReplaceAll(const std::string &search_str,
 	}
 }
 
-} // namespace GAIA
+} // namespace Gaia
 
 #endif

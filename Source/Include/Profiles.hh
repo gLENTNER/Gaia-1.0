@@ -16,9 +16,9 @@
 #include <ProfileBase.hh>
 #include <Vector.hh>
 
-namespace GAIA {
+namespace Gaia {
 	
-// CREATE USER DEFINED PROFILES HERE (INSIDE THE `GAIA` NAMESPACE)  ...
+// CREATE USER DEFINED PROFILES HERE (INSIDE THE `Gaia` NAMESPACE)  ...
 // -----------------------------------------------------------------------
 
 // Profile for the mass density of the galaxy disk (isotropic in the disk)
@@ -64,10 +64,10 @@ public:
 };
 
 // Example for NGC1300 from HST FITS image ...
-class SurfaceProfile: public ProfileBase {
+class Surface: public ProfileBase {
 public:
 	
-	SurfaceProfile(): ProfileBase("SurfaceProfile", "X", "Y"){ }
+	Surface(): ProfileBase("Surface", "X", "Y"){ }
 };
 
-} // namespace GAIA
+} // namespace Gaia

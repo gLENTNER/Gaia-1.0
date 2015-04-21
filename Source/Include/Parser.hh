@@ -14,7 +14,7 @@
 #include <string>
 #include <map>
 
-namespace GAIA {
+namespace Gaia {
 
 class Parser {
 
@@ -26,7 +26,7 @@ public:
 
 	// set up the simulation environment
 	void Setup(const int argc, const char *argv[]);
-	
+
 	// retrieval functions, "getters"
 	unsigned long long GetNumParticles() const;
 	int GetNumTrials() const;
@@ -47,7 +47,9 @@ public:
 	std::string GetTmpPath() const;
 	std::string GetPosPath() const;
 	std::string GetRCFile() const;
-	
+	unsigned long long GetFirstSeed() const;
+	std::map<std::string, std::string> GetUsedPDFs() const;
+
 private:
 
 	static Parser* instance;
@@ -55,44 +57,61 @@ private:
 
 	// set default values for `argument` map, etc...
 	void SetDefaults();
-	
+
 	// parse the commands in the configuration (rc) file
 	void ReadRC();
-	
+
 	// parse the input arguments from `main`
 	void Interpret();
-	
+
 	// check/assign arguments
 	void Rectify();
-	
+
 	// helper functions
 	void SetLimits(const std::string&, const std::string&, const std::string&);
 	void SetXY(const std::string&, const std::string&);
 	void SetRadial(const std::string&, const std::string&);
+    
+    void Clip(std::string &input_string, const std::string &delim);
+    std::vector<std::string> Split(const std::string &input);
+    void ReplaceAll(const std::string &search_str,
+        const std::string &replace_str, std::string& input_str);
+
+	// helper functions for `Command` map
+	void Set(const std::vector<std::string>&);
+	void Include(const std::vector<std::string>&);
 
 	// maps of parameters
 	std::map<std::string, std::string> argument, implicit;
 	std::map<std::string, bool> given;
 
-	// simulation parameters, see Interpret() for defaults
+	// simulation parameters, see SetDefaults() for defaults
 	unsigned long long _num_particles;
 	int _verbose, _num_threads, _num_trials, _line_number;
 	bool _keep_raw, _keep_pos, _no_analysis, _debug_mode;
 	std::string _out_path, _raw_path, _tmp_path, _pos_path;
 	std::string _rc_file;
-	
+	unsigned long long _first_seed;
+
 	// vector for `argv`
 	std::vector<std::string> _cmd_args;
-	
+
 	// items from rc file
 	std::vector<double> _x_limits, _y_limits, _z_limits;
 	std::vector<int> _xy_resolution;
 	int _radial_resolution, _analysis_domain;
-	
+
 	bool _given_xlims, _given_ylims, _given_zlims;
 	bool _given_xy, _given_radial;
+
+	// map of `Command` functions for RC-file parsing
+	// std::map<std::string, void (*)(const std::vector<std::string>&,
+	// 	const std::string &, int) > Command;
+
+	// map of profile names from RC-file with file paths
+	std::map<std::string, std::string> UsedPDFs;
 };
 
-} // namespace GAIA
+} // namespace Gaia
 
 #endif

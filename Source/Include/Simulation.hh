@@ -11,20 +11,23 @@
 #define _SIMULATION_HH_
 
 #include <Parser.hh>
+#include <Monitor.hh>
+#include <FileManager.hh>
+#include <PopulationManager.hh>
 
-namespace GAIA {
+namespace Gaia {
 
 class Simulation {
 
 public:
-	
+
 	Simulation(const int argc, const char *argv[]);
 	~Simulation();
-	
+
 	void Run();
-	
+
 private:
-	
+
 	Parser *parser;
 	Monitor *display;
 	FileManager *file;
@@ -32,6 +35,6 @@ private:
 
 };
 
-} // namespace GAIA
+} // namespace Gaia
 
 #endif

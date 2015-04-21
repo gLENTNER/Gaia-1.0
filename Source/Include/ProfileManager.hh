@@ -6,24 +6,26 @@
 #ifndef _PROFILEMANAGER_HH_
 #define _PROFILEMANAGER_HH_
 
-namespace GAIA {
+#include <vector>
+
+#include <ProfileBase.hh>
+
+namespace Gaia {
 
 class ProfileManager {
 
 public:
 	
-	ProfileManager();
+    ProfileManager();
 	~ProfileManager();
 	
-	Initialize();
-	
-	// maintain list of `known` and `used` PDFs
-	ProfileBase *knownPDFs, *usedPDFs;
-	
-private:
+	void Initialize();
+    
+    // maintain list `used` PDFs
+    std::vector<ProfileBase*> UsedPDFs;
 
 };
 
-} // namespace GAIA
+} // namespace Gaia
 
 #endif

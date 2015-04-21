@@ -12,7 +12,7 @@
 
 #include <Monitor.hh>
 
-namespace GAIA {
+namespace Gaia {
 
 Monitor* Monitor::instance = NULL;
 bool     Monitor::started  = false;
@@ -118,7 +118,7 @@ void Monitor::TotalElapsedTime( ){
 	while ( seconds > 60.0    ) { seconds -= 60.0; minutes++; }
 
 	// print header
-	std::cout << 
+	std::cout << "\n\n" <<
 		" --------------------------------------------------\n"
 		" Total Elapsed Time: ";
 
@@ -143,4 +143,4 @@ std::string Monitor::CompletionTime( int local_elapsed_time ) {
 	return buf;
 }
 
-} // namespace GAIA
+} // namespace Gaia

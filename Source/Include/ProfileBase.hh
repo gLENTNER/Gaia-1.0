@@ -9,56 +9,82 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include <Vector.hh>
+#include <Interpolate.hh>
+#include <Parser.hh>
 
-namespace GAIA {
+namespace Gaia {
 
 class ProfileBase {
 
 public:
+
+	// construct `Profile` with a name and axis information
+	ProfileBase(const std::string &name, const std::string &axis1 = "",
+		const std::string &axis2 = "");
 	
-	// construct `Profile` with a name
-	ProfileBase(const std::string &name);
-	~ProfileBase();
-	
-	void Initialize(const std::string &filename);
-	
-	void Evaluate(const Vector&);
-	
+    ~ProfileBase();
+
+	void Initialize(std::string &filename);
+
 	std::string Name(){return _name;}
-	
+
 	// analytical `Function` is unique to each derived `Profile`
-	virtual double Function(const Vector &position){return 1;}
-	
+	virtual double Function(const Vector &vec){ return 1.0; }
+
+	// generalized accessor function chooses what to do
+	double Evaluate(const Vector &vec);
+
 private:
-	
+
 	// convert string to vector<double>
 	std::vector<double> ReadElements(std::string &line);
-	
+    // replace elements of one string in another
+    void ReplaceAll(const std::string&, const std::string&, std::string&);
+
 	// used to differentiate derived `Profile` classes at runtime
 	std::string _name;
-	
+
 	// data from file
 	std::vector< std::vector<double> > _data;
-	
+
 	// 1D data (`x` is not necessarily x and y = f(x) )
 	std::vector<double> _x, _y;
-	
-	// map of functions, dimensions
-	std::map< std::string, double (*)(const Vector&) > _coords;
-	
+
+	// limits needed to construct line-space given a 2D profile
+	std::map< std::string, std::vector<double> > Limits;
+
+	// map of functions, axis1 and axis2
+	std::map< std::string, double (*)(const Vector&) > Coord;
+
 	// functions in the above map (calls to vector coordinates)
-	double X(const Vector &coord)     { return coord.X();     }
-	double Y(const Vector &coord)     { return coord.Y();     }
-	double Z(const Vector &coord)     { return coord.Z();     }
-	double R(const Vector &coord)     { return coord.R();     }
-	double Rho(const Vector &coord)   { return coord.Rho();   }
-	double Phi(const Vector &coord)   { return coord.Phi();   }
-	double Theta(const Vector &coord) { return coord.Theta(); }
-	
+	static double X(const Vector &vec)     { return vec.X();     }
+	static double Y(const Vector &vec)     { return vec.Y();     }
+	static double Z(const Vector &vec)     { return vec.Z();     }
+	static double R(const Vector &vec)     { return vec.R();     }
+	static double Rho(const Vector &vec)   { return vec.Rho();   }
+	static double Phi(const Vector &vec)   { return vec.Phi();   }
+	static double Theta(const Vector &vec) { return vec.Theta(); }
+
+	// given axis from derived class constructor
+	std::string _axis1, _axis2;
+
+	// flags to signify 1D or 2D
+	bool _1D, _2D;
+
+	// flag to signify analyticity
+	bool _analytical;
+
+	// member interpolators
+	Interpolate::Linear<double>   *Linear_Data;
+	Interpolate::BiLinear<double> *BiLinear_Data;
+
+	// helper function for Initialize()
+	std::vector<double> Linespace(const double, const double, const std::size_t);
 };
 
-} // namespace GAIA
+} // namespace Gaia
 
 #endif

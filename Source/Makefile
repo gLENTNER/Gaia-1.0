@@ -5,10 +5,10 @@
 
 # variables
 compile = g++
-debug   = -g
-ccflags = -fopenmp
-exe     = bin/GAIA
-bin     = bin
+debug   = 
+ccflags = -fopenmp -std=c++11
+exe     = Bin/Gaia
+bin     = Bin
 inc     = Include
 lib     = Library
 obj     = Object
@@ -16,20 +16,21 @@ obj     = Object
 # change this line to install to a different location!
 install = /usr/bin/
 
-# included archives (code structure)
-#Archives  = libFramework libProfiles libTools
-#Framework = Simulation.o PopulationManager.o FileManager.o Parser.o Monitor.o
-#Profiles  = ProfileManager.o ProfileBase.o
-#Tools     = CurveFit.o Interpolation.o Random.o mt19937.o Vector.o
-
 # Primary `link`ing target
-link: Main libFramework
-	${compile} ${debug} -o ${exe} Main.o -I${inc} -L. -lFramework ${ccflags}
+link: Main libTools libFramework libProfiles
+	${compile} ${debug} -o ${exe} Main.o -I${inc} -L. -lTools \
+		-lProfiles -lFramework ${ccflags}
 	mv *.a *.o ${obj}/
 
-Framework  = Parser.o Simulation.o Monitor.o
-Framework:   Parser.o Simulation.o Monitor.o
-	
+Tools      = KernelFit.o Interpolate.o Random.o
+Tools:       KernelFit.o Interpolate.o Random.o
+
+Framework  = Simulation.o Parser.o Monitor.o FileManager.o PopulationManager.o
+Framework:   Simulation.o Parser.o Monitor.o FileManager.o PopulationManager.o
+
+Profiles   = ProfileBase.o ProfileManager.o
+Profiles:    ProfileBase.o ProfileManager.o
+
 # library construction template
 lib%: %
 	ar -rv $@.a ${$*}
@@ -48,7 +49,6 @@ Main: ${lib}/Main.cc
 # clear all objects and archives
 clean:
 	rm -rf ${obj}/{*.o,*.a}
-	
+
 install:
 	cp ${exe} ${install}
-

@@ -4,107 +4,127 @@
 //
 // TODO: source
 
-#include <PopulationManager.hh>
+#include <omp.h>
 
-namespace GAIA {
+#include <fstream>
+
+#include <PopulationManager.hh>
+#include <ProfileManager.hh>
+#include <FileManager.hh>
+#include <Parser.hh>
+#include <Random.hh>
+
+namespace Gaia {
 
 PopulationManager::PopulationManager(){
-	
+
 	// initialize pointers to NULL
-	profiles = generator = positions = NULL;
-	
-	// initialize profile manager
-	profiles = new ProfileManager();
-	
-	// grab the file manager
-	file = FileManager::GetInstance();
-	
-	// read in simulation parameters
-	unsigned long long N          = parser -> GetNumParticles();
-	unsigned long long first_seed = parser -> GetFirstSeed(); 
-	int                threads    = parser -> GetNumThreads();
-	
-	// get cartesian limits for `box`
-	std::vector<double> _xlimits = parser -> GetXlimits();
-	std::vector<double> _ylimits = parser -> GetYlimits();
-	std::vector<double> _zlimits = parser -> GetZlimits();
-	
-	// initialize parallel mt19937 PRNG array
-	generator = new ParallelMT(threads, first_seed);
-	
-	// create vector of `Vector`s for positions
-	positions = new std::vector<Vector>;
-	positions -> resize(N);
+	profiles  = nullptr;
+	generator = nullptr;
 }
 
-PopulationManager::~PopulationManager(){	
+PopulationManager::~PopulationManager(){
 
 	// delete profile manager
 	if (profiles){
 		delete profiles;
 		profiles = NULL;
 	}
-	
+
 	// delete PRNG
 	if (generator){
 		delete generator;
 		generator = NULL;
 	}
-	
-	// delete positions
-	if (positions){
-		delete positions;
-		positions = NULL;
-	}
 }
 
 // set up the `Profile`s
 void PopulationManager::Initialize(){
-	
-	// initialize the `Profile`s in the profile manager
-	profiles -> Initialize();
+
+	// initialize profile manager
+	profiles = new ProfileManager();
+    profiles -> Initialize();
+
+	// grab the file manager
+	file = FileManager::GetInstance();
+    
+    // grab the Monitor
+    display = Monitor::GetInstance();
+
+	// grab the parser
+	parser = Parser::GetInstance();
+
+	// read in simulation parameters
+	N          = parser -> GetNumParticles();
+	first_seed = parser -> GetFirstSeed();
+	threads    = parser -> GetNumThreads();
+    verbose    = parser -> GetVerbosity();
+
+	// get cartesian limits for `box`
+	Xlimits = parser -> GetXlimits();
+	Ylimits = parser -> GetYlimits();
+	Zlimits = parser -> GetZlimits();
+
+	// initialize parallel mt19937 PRNG array
+	generator = new ParallelMT(threads, first_seed);
+
+	// initialize `positions` vector
+	std::vector<Vector> new_population_vector;
+	positions = new_population_vector;
+	positions.resize(N);
+
+	// build intervals on `positions` vector
+	interval = Interval::Build(positions, threads);
 }
 
 // build a new population set
 void PopulationManager::Build(const int trial){
-	
+
+    if ( verbose > 2 )
+        std::cout << "\n Building population #" << trial << std::endl;
+    
 	#pragma omp parallel for
 	for (int i = 0; i < threads; i++)
-	for (unsigned long long j = interval[i].start; j <= interval[i].end; j++){
-		
+	for (std::size_t j = interval[i].start; j <= interval[i].end; j++){
+
+        if ( verbose > 2 && !omp_get_thread_num() )
+            display -> Progress(j, N, omp_get_num_threads() );
+        
 		// keep generating positions until we are `successful`
 		while ( true ){
-			
+
 			// flag for determining condition for a `break`
 			bool successful = true;
-			
+
 			// the new position vector (uniform in the `box`)
 			Vector new_position(
-				generator -> RandomReal( i, _xlimits ),
-				generator -> RandomReal( i, _ylimits ),
-				generator -> RandomReal( i, _zlimits )
-			);
-			
+				generator -> RandomReal( i, Xlimits ),
+				generator -> RandomReal( i, Ylimits ),
+				generator -> RandomReal( i, Zlimits ));
+
 			// loop through PDFs and reject if less than uniform random number
-			for (std::list<ProfileBase*> pdf = profiles -> usedPDFs.begin();
-				pdf != profiles -> usedPDFs.end(); pdf++){
-			
-				ProfileBase *this_pdf = *pdf;
-				
-				if ( this_pdf -> Evaluate(new_position) < 
-					generator -> RandomReal() ){
-					
-					successful = false; break;	
+			for ( const auto& pdf : profiles -> UsedPDFs ){
+
+				ProfileBase *this_pdf = pdf;
+                
+				if ( this_pdf -> Evaluate(new_position) <
+                    generator -> RandomReal(i) ){
+
+					successful = false; break;
 				}
-				
-			} if (successful) {
+			}
+
+			if (successful) {
 				// keep the new position vector
 				positions[j] = new_position;
 				break;
 			}
 		}
 	}
-	
+
+    if (verbose > 2)
+        display -> Progress(N, N);
+    
 	// save results
 	if ( parser -> GetKeepPosFlag() )
 		file -> SavePositions(positions, trial);
@@ -112,18 +132,50 @@ void PopulationManager::Build(const int trial){
 
 // solve for the nearest neighbor separations
 void PopulationManager::FindNeighbors(const int trial){
-	
+
 }
 
 // fit a curve/surface to the data from FindNeighbors()
 void PopulationManager::ProfileFit(const int trial){
-	
+
 }
 
 // combine statistics for all trials
 void PopulationManager::Analysis(){
-	
+
 }
 
+std::vector<Interval> Interval::Build(const std::vector<Vector> &input,
+	const std::size_t num){
+	//
+	// `Build` a vector of `Interval`s based on an `input` vector and the
+	// `num`ber of subdivisions requested.
+	//
 
-} // namespace GAIA
+	// initialize the output vector
+	std::vector<Interval> output;
+
+	// the size of intervals
+	std::size_t interval_size = input.size() / num;
+
+	// the first interval starts with the first element of the `input`
+	// the name `last` will make sense further down
+	Interval last(0, interval_size);
+	output.push_back(last);
+
+	// leap-frog through the intervals
+	for (std::size_t i = 0; i < num - 1; i++){
+
+		Interval next(last.end + 1, last.end + interval_size);
+		output.push_back(next);
+
+		last = next;
+	}
+
+	// rectify final interval (for odd lengths)
+	output[num-1].end = input.size() - 1;
+
+	return output;
+}
+
+} // namespace Gaia

@@ -12,28 +12,28 @@
 #include <Exception.hh>
 
 int main( const int argc, const char *argv[] ){
-	
+
 	try {
 
 		// create and run the simulation
-		GAIA::Simulation simulation(argc, argv);
+		Gaia::Simulation simulation(argc, argv);
 		simulation.Run();
-		
-	} catch (const GAIA::Usage& usage){
-		
+
+	} catch (const Gaia::Usage& usage){
+
 		std::cout << usage.what() << std::endl;
 		return 0;
-	
-	} catch (const GAIA::Exception& error){
-		
+
+	} catch (const Gaia::Exception& error){
+
 		std::cerr << error.what() << std::endl;
 		return 1;
-		
+
 	} catch (const std::exception& error){
-		
+
 		std::cerr << error.what() << std::endl;
 		return 2;
 	}
-	
+
 	return 0;
 }
