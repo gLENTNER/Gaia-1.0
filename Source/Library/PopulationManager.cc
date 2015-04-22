@@ -11,6 +11,7 @@
 #include <PopulationManager.hh>
 #include <ProfileManager.hh>
 #include <FileManager.hh>
+#include <Vector.hh>
 #include <Parser.hh>
 #include <Random.hh>
 
@@ -75,6 +76,16 @@ void PopulationManager::Initialize(){
 
 	// build intervals on `positions` vector
 	interval = Interval::Build(positions, threads);
+    
+    // compute the `span` of the space
+    Vector span(
+        Xlimits[1] - Xlimits[0], // maximum distance in `x`
+        Ylimits[1] - Ylimits[0], // maximum distance in `y`
+        Zlimits[1] - Zlimits[0]  // maximum distance in `z`
+    );
+    
+    // initialization for FindNeighbors() algorithm
+    maximum_seperation = span.Mag();
 }
 
 // build a new population set
@@ -130,9 +141,32 @@ void PopulationManager::Build(const int trial){
 		file -> SavePositions(positions, trial);
 }
 
-// solve for the nearest neighbor separations
+// solve for the nearest neighbor seperations
 void PopulationManager::FindNeighbors(const int trial){
 
+    if ( verbose )
+        std::cout << "\n Computing seperations ...";
+    
+    std::vector<double> init(N, maximum_seperation);
+    seperations = init;
+    
+    #pragma omp parallel for
+    for (std::size_t i = 0; i < N; i++)
+    for (std::size_t j = 0; j < N; j++)
+    if ( i != j ){
+        
+        double r = (positions[i] - positions[j]).Mag();
+        
+        if ( r < seperations[i] )
+            seperations[i] = r;
+    }
+    
+    if ( verbose )
+        std::cout << " done";
+    
+    // save results
+    if ( parser -> GetKeepRawFlag() )
+        file -> SaveRaw(seperations, trial);
 }
 
 // fit a curve/surface to the data from FindNeighbors()

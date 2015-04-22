@@ -153,8 +153,9 @@ void Simulation::Run(){
     std::size_t  N = parser -> GetNumParticles();
 
 	// greet the user
-	if (verbose) std::cout << "\n Building " << trials <<
-        " population(s) of size " << N << " ...\n";
+	if (verbose) std::cout
+        << "\n Building " << trials
+        << " population(s) of size " << N << " ...\n";
 
     // iterate over all trials
     for (int t = 0; t < trials; t++){
@@ -166,14 +167,14 @@ void Simulation::Run(){
         // build a new population
         population -> Build(t);
 
-//        if (analysis){
+        if (analysis){
 //
-//            // find the nearest neighbor seperations
-//            population -> FindNeighbors(t);
-//
+            // find the nearest neighbor seperations
+            population -> FindNeighbors(t);
+
 //            // fit a profile to curve
 //            population -> ProfileFit(t);
-//        }
+        }
     }
 
     // complete progress bar

@@ -1,0 +1,14 @@
+# Example Gaia RC file for simulation of NGC1300
+
+set Xlimits -21.179585    21.179585
+set Ylimits -16.338647689 16.338647689 # this is in kilo-parsecs
+set Zlimits -0.3          0.3
+
+set --num-trials 2
+set --num-particles 1.5e+4
+
+set --pos-path "Output/pos-ir-"
+
+#include MassDensity
+#include Metallicity
+include Surface     "Data/ngc1300-ir.csv"

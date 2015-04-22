@@ -24,6 +24,7 @@ public:
     
     void Initialize();
     void SavePositions(const std::vector<Vector>&, const std::size_t );
+    void SaveRaw( const std::vector<double>&, const std::size_t );
     
 private:
     

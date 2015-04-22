@@ -63,13 +63,49 @@ void FileManager::SavePositions(const std::vector<Vector> &positions,
         
         output.precision(16);
         
+        if (verbose) std::cout
+            << "\n Saving position vectors to `"
+            << filename << "` ... ";
+        
         for ( const auto& vec : positions )
             output << vec << std::endl;
+        
+        if (verbose)
+            std::cout << "done";
         
     } else throw IOError("From FileManager::SavePositions(), I "
     "couldn't open the file `" + filename + "`!");
 }
 
+void FileManager::SaveRaw(const std::vector<double> &seperations,
+    const std::size_t trial){
+
+    // build file name
+    std::stringstream buffer;
+    buffer << raw_path << trial << ".dat";
+    std::string filename = buffer.str();
+    
+    // open file and write positions
+    std::ofstream output( filename.c_str() );
+    
+    if (output) {
+        
+        output.precision(16);
+        
+        if (verbose) std::cout
+            << "\n Saving raw nearest neighbor distances to `"
+            << filename << "` ... ";
+        
+        for ( const auto& sep : seperations )
+            output << sep << std::endl;
+        
+        if (verbose)
+            std::cout << "done";
+        
+    } else throw IOError("From FileManager::SaveRaw(), I "
+    "couldn't open the file `" + filename + "`!");
+}
+    
 } // namespace Gaia
 
 

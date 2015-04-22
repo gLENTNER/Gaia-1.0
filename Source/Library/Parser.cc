@@ -291,6 +291,9 @@ void Parser::Rectify(){
 	if ( _num_threads > omp_get_max_threads() )
 		throw InputError( "OpenMP says you have less than " +
 			argument["--num-threads"] + " available!" );
+    
+    // set threads
+    omp_set_num_threads(_num_threads);
 
 	// check trial numbers
 	convert.clear();

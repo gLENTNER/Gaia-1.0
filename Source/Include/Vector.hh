@@ -60,6 +60,9 @@ public:
 		else throw DivError("Radius was zero in Vector::Theta()!");
 	}
 
+    // magnitude is simply an alias for `Rho`
+    double Mag() const {return sqrt(_x*_x + _y*_y + _z*_z);}
+
 	// `setters` (cartesian coordinates only)
 	void SetX(const double& x){_x = x;}
 	void SetY(const double& y){_y = y;}
@@ -68,6 +71,21 @@ public:
 		_x = x; _y = y; _z = z;
 	}
     
+    // addition
+    Vector operator+ ( const Vector &rhs ){
+        
+        Vector result( X() + rhs.X(), Y() + rhs.Y(), Z() + rhs.Z() );
+        return result;
+    }
+    
+    // subtraction
+    Vector operator- ( const Vector &rhs ){
+        
+        Vector result( X() - rhs.X(), Y() - rhs.Y(), Z() - rhs.Z() );
+        return result;
+    }
+    
+    // output to a stream
     friend std::ostream& operator<< (std::ostream &aStream, const Vector &aVec){
         aStream << aVec.X() << " " << aVec.Y() << " " << aVec.Z();
         return aStream;

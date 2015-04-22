@@ -79,6 +79,7 @@ private:
 
 	// nearest neighbor seperations
 	std::vector<double> seperations;
+    double max_seperation;
 
 	// simulation parameters from parser
 	std::size_t N;

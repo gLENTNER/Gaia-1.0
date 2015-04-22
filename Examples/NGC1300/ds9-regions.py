@@ -344,20 +344,21 @@ xx['ir'],   yy['ir']   = np.meshgrid( x['ir'],   y['ir']   )
 xx['red'],  yy['red']  = np.meshgrid( x['red'],  y['red']  )
 xx['blue'], yy['blue'] = np.meshgrid( x['blue'], y['blue'] )
 
-# plot.close()
-# fig = plot.figure()
-# ax  = fig.add_subplot(111, projection='3d')
-# ax.plot_surface(xx/1000, yy/1000, zz/zz.max(), cmap=cm.terrain)
-#
-# plot.xlabel("$x (kpc)$", fontsize=16, labelpad=20)
-# plot.ylabel("$y (kpc)$", fontsize=16, labelpad=20)
-# ax.set_zlabel("normalized flux", fontsize=16)
-# plot.title("NGC 1300 Flux as Elevation")
-# plot.draw()
-#
+# normalize/enhance data
+zz["ir"][ np.where( zz["ir"] < np.median(zz["ir"]) ) ] = 0.0
+zz["ir"] = zz["ir"] ** 3
+zz["ir"] /= 2 * zz["ir"].max()
+
+zz["red"][ np.where( zz["red"] < np.median(zz["red"]) ) ] = 0.0
+zz["red"] = zz["red"] ** 3
+zz["red"] /= 2 * zz["red"].max()
+
+zz["blue"][ np.where( zz["blue"] < np.median(zz["blue"]) ) ] = 0.0
+zz["blue"] = zz["blue"] ** 3
+zz["blue"] /= 2 * zz["blue"].max()
 
 print('\n Saving `ir` data to csv file `ncg1300-ir.csv` ...')
-output = list(zz['ir']/zz['ir'].max())
+output = list(zz['ir'])
 output = [ [ str(value) for value in row ] for row in output ]
 output = [ ', '.join(row) for row in output ]
 output = [ row + '\n' for row in output ]
@@ -366,7 +367,7 @@ with open('ngc1300-ir.csv', 'w') as outfile:
     outfile.writelines(output)
 
 print('\n Saving `red` data to csv file `ncg1300-red.csv` ...')
-output = list(zz['red']/zz['red'].max())
+output = list(zz['red'])
 output = [ [ str(value) for value in row ] for row in output ]
 output = [ ', '.join(row) for row in output ]
 output = [ row + '\n' for row in output ]
@@ -375,7 +376,7 @@ with open('ngc1300-red.csv', 'w') as outfile:
     outfile.writelines(output)
 
 print('\n Saving `blue` data to csv file `ncg1300-blue.csv` ...')
-output = list(zz['blue']/zz['blue'].max())
+output = list(zz['blue'])
 output = [ [ str(value) for value in row ] for row in output ]
 output = [ ', '.join(row) for row in output ]
 output = [ row + '\n' for row in output ]
