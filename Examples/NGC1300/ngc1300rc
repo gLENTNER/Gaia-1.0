@@ -8,7 +8,10 @@ set --num-trials 2
 set --num-particles 1.5e+4
 
 set --pos-path "Output/pos-ir-"
+set --raw-path "Output/raw-ir-"
+
+set Analysis R 1e3
 
 #include MassDensity
 #include Metallicity
-include Surface     "Data/ngc1300-ir.csv"
+include Surface "Data/ngc1300-ir.csv"

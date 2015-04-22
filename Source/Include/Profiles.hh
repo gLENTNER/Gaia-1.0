@@ -43,7 +43,7 @@ public:
 class Metallicity: public ProfileBase {
 public:
     
-    Metallicity: ProfileBase("Metallicity"){ }
+    Metallicity(): ProfileBase("Metallicity"){ }
     
     virtual double Function( const Vector& p ){
         

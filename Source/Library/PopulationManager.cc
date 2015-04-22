@@ -11,6 +11,7 @@
 #include <PopulationManager.hh>
 #include <ProfileManager.hh>
 #include <FileManager.hh>
+#include <Exception>
 #include <Vector.hh>
 #include <Parser.hh>
 #include <Random.hh>
@@ -60,6 +61,7 @@ void PopulationManager::Initialize(){
 	first_seed = parser -> GetFirstSeed();
 	threads    = parser -> GetNumThreads();
     verbose    = parser -> GetVerbosity();
+    analysis   = parser -> GetAnalysisDomain();
 
 	// get cartesian limits for `box`
 	Xlimits = parser -> GetXlimits();
@@ -85,14 +87,14 @@ void PopulationManager::Initialize(){
     );
     
     // initialization for FindNeighbors() algorithm
-    maximum_seperation = span.Mag();
+    max_seperation = span.Mag();
 }
 
 // build a new population set
 void PopulationManager::Build(const int trial){
 
-    if ( verbose > 2 )
-        std::cout << "\n Building population #" << trial << std::endl;
+    if ( verbose > 2 ) std::cout
+        << "\n Building population #" << trial << std::endl;
     
 	#pragma omp parallel for
 	for (int i = 0; i < threads; i++)
@@ -145,24 +147,30 @@ void PopulationManager::Build(const int trial){
 void PopulationManager::FindNeighbors(const int trial){
 
     if ( verbose )
-        std::cout << "\n Computing seperations ...";
+        std::cout << "\n Computing seperations ..." << std::endl;
+        std::cout.flush();
     
-    std::vector<double> init(N, maximum_seperation);
+    std::vector<double> init(N, max_seperation);
     seperations = init;
     
     #pragma omp parallel for
-    for (std::size_t i = 0; i < N; i++)
-    for (std::size_t j = 0; j < N; j++)
-    if ( i != j ){
+    for (std::size_t i = 0; i < N; i++) {
         
-        double r = (positions[i] - positions[j]).Mag();
+        if ( verbose > 2 && !omp_get_thread_num() )
+            display -> Progress(i, N, omp_get_num_threads() );
         
-        if ( r < seperations[i] )
-            seperations[i] = r;
+        for (std::size_t j = 0; j < N; j++)
+        if ( i != j ){
+            
+            double r = (positions[i] - positions[j]).Mag();
+            
+            if ( r < seperations[i] )
+                seperations[i] = r;
+        }
     }
     
-    if ( verbose )
-        std::cout << " done";
+    if ( verbose > 2 )
+        display -> Progress(N, N);
     
     // save results
     if ( parser -> GetKeepRawFlag() )
@@ -172,6 +180,21 @@ void PopulationManager::FindNeighbors(const int trial){
 // fit a curve/surface to the data from FindNeighbors()
 void PopulationManager::ProfileFit(const int trial){
 
+    switch (analysis){
+            
+        case 1:
+        case 2:
+            RadialProfileFit(const int trial);
+            break;
+            
+        case 3:
+            CartesianProfileFit(const int trial);
+            break;
+            
+        default:
+            throw Exception("\n -> Error: From PopulationManager::"
+            "ProfileFit(), something went wrong with the `analysis` flag!");
+    }
 }
 
 // combine statistics for all trials

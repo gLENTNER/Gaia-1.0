@@ -458,7 +458,8 @@ void Parser::Set(const std::vector<std::string> &line){
 
 		// check for the three allowed categories
 		if ( line[2] != "R" && line[2] != "Rho" && line[2] != "XY"){
-			std::stringstream warning;
+			
+            std::stringstream warning;
 			warning << "In file `" << _rc_file << "` on line " << _line_number;
 			warning << ", `" << line[2] << "` is not a recognized ";
 			warning << "option for `Analysis`!";

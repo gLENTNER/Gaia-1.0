@@ -84,7 +84,7 @@ private:
 	// simulation parameters from parser
 	std::size_t N;
 	unsigned long long first_seed;
-	int threads, verbose;
+	int threads, verbose, analysis;
 
 };
 

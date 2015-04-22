@@ -64,14 +64,16 @@ void FileManager::SavePositions(const std::vector<Vector> &positions,
         output.precision(16);
         
         if (verbose) std::cout
-            << "\n Saving position vectors to `"
+            << "\n\n Saving position vectors to `"
             << filename << "` ... ";
+            std::cout.flush();
         
         for ( const auto& vec : positions )
             output << vec << std::endl;
         
         if (verbose)
             std::cout << "done";
+            std::cout.flush();
         
     } else throw IOError("From FileManager::SavePositions(), I "
     "couldn't open the file `" + filename + "`!");
@@ -93,14 +95,16 @@ void FileManager::SaveRaw(const std::vector<double> &seperations,
         output.precision(16);
         
         if (verbose) std::cout
-            << "\n Saving raw nearest neighbor distances to `"
+            << "\n\n Saving raw nearest neighbor distances to `"
             << filename << "` ... ";
-        
+            std::cout.flush();
+
         for ( const auto& sep : seperations )
             output << sep << std::endl;
         
         if (verbose)
             std::cout << "done";
+            std::cout.flush();
         
     } else throw IOError("From FileManager::SaveRaw(), I "
     "couldn't open the file `" + filename + "`!");
