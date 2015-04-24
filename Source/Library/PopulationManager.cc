@@ -11,7 +11,7 @@
 #include <PopulationManager.hh>
 #include <ProfileManager.hh>
 #include <FileManager.hh>
-#include <Exception>
+#include <Exception.hh>
 #include <Vector.hh>
 #include <Parser.hh>
 #include <Random.hh>
@@ -140,7 +140,7 @@ void PopulationManager::Build(const int trial){
     
 	// save results
 	if ( parser -> GetKeepPosFlag() )
-		file -> SavePositions(positions, trial);
+		file -> SavePositions(positions, trial + 1);
 }
 
 // solve for the nearest neighbor seperations
@@ -154,10 +154,10 @@ void PopulationManager::FindNeighbors(const int trial){
     seperations = init;
     
     #pragma omp parallel for
-    for (std::size_t i = 0; i < N; i++) {
+    for (std::size_t i = 0; i < 1000; i++) {
         
         if ( verbose > 2 && !omp_get_thread_num() )
-            display -> Progress(i, N, omp_get_num_threads() );
+            display -> Progress(i, 1000, omp_get_num_threads() );
         
         for (std::size_t j = 0; j < N; j++)
         if ( i != j ){
@@ -174,27 +174,27 @@ void PopulationManager::FindNeighbors(const int trial){
     
     // save results
     if ( parser -> GetKeepRawFlag() )
-        file -> SaveRaw(seperations, trial);
+        file -> SaveRaw(seperations, trial + 1);
 }
 
 // fit a curve/surface to the data from FindNeighbors()
 void PopulationManager::ProfileFit(const int trial){
 
-    switch (analysis){
-            
-        case 1:
-        case 2:
-            RadialProfileFit(const int trial);
-            break;
-            
-        case 3:
-            CartesianProfileFit(const int trial);
-            break;
-            
-        default:
-            throw Exception("\n -> Error: From PopulationManager::"
-            "ProfileFit(), something went wrong with the `analysis` flag!");
-    }
+//    switch (analysis){
+//            
+//        case 1:
+//        case 2:
+//            RadialProfileFit(const int trial);
+//            break;
+//            
+//        case 3:
+//            CartesianProfileFit(const int trial);
+//            break;
+//            
+//        default:
+//            throw Exception("\n -> Error: From PopulationManager::"
+//            "ProfileFit(), something went wrong with the `analysis` flag!");
+//    }
 }
 
 // combine statistics for all trials

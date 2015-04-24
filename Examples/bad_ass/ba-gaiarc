@@ -1,0 +1,17 @@
+# Example Gaia RC file for simulation of NGC1300
+
+set Xlimits 0 234
+set Ylimits 0 300
+set Zlimits 0 0.1
+
+set --num-trials 1
+set --num-particles 1e4
+
+set --pos-path "vectors-"
+#set --raw-path "Output/raw-blue-"
+
+#set Analysis R 1e3
+
+#include MassDensity
+#include Metallicity
+include Surface "./data.csv"

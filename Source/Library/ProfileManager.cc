@@ -40,6 +40,7 @@ void ProfileManager::Initialize(){
     // hard code known profiles
     std::vector<ProfileBase*> KnownPDFs;
     KnownPDFs.push_back( new MassDensity() );
+    KnownPDFs.push_back( new Spiral() );
     KnownPDFs.push_back( new Metallicity() );
     KnownPDFs.push_back( new Habitability() );
     KnownPDFs.push_back( new Surface() );

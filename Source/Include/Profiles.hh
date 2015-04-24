@@ -21,7 +21,7 @@ namespace Gaia {
 // CREATE USER DEFINED PROFILES HERE (INSIDE THE `Gaia` NAMESPACE)  ...
 // -----------------------------------------------------------------------
 
-// Profile for the mass density of the galaxy disk (isotropic in the disk)
+// Profile for the mass density of the galaxy disk (isotropic)
 class MassDensity: public ProfileBase {
 public:
 	
@@ -29,17 +29,36 @@ public:
 	
 	virtual double Function(const Vector& p){
 	
-		double No     = 0.50; // normalization coefficient
+		double no     = 0.50; // normalization coefficient
 		double Rs     = 4.67; // scale radius for the disk
 		double Zthick = 0.50; // scale height of the thick disk
 		double Zthin  = 0.15; // scale height of the thin disk
+        double m      = 0.02; // relative scale, thick disk
 	
-		return No * exp( -pow(p.R(), 2.0) / (2.0 * Rs * Rs) ) * (
+		return no * exp( -pow(p.R(), 2.0) / (2.0 * Rs * Rs) ) * (
             exp( -pow(p.Z(), 2.0) / (2.0 * Zthin * Zthin) ) +
-			0.02 * exp( -pow(p.Z(), 2.0) / (2.0 * Zthick * Zthick) ) );
+			m * exp( -pow(p.Z(), 2.0) / (2.0 * Zthick * Zthick) ) );
 	}
 };
+    
+// model spirals
+class Spiral: public ProfileBase {
+public:
+    
+    Spiral(): ProfileBase("Spiral"){ }
+    
+    virtual double Function(const Vector &p){
 
+        double n   = 1.0;
+        double Rs  = 16.863;
+        double xi  =  1.5;
+        double pi2 =  3.141592653589793 * 2.0;
+        double tau =  2.0;
+        
+        return pow(cos(n * p.Phi() - xi * pi2 * p.R() / Rs), tau);
+    }
+};
+    
 class Metallicity: public ProfileBase {
 public:
     

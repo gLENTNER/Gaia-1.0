@@ -18,8 +18,8 @@ install = /usr/bin/
 
 # Primary `link`ing target
 link: Main libTools libFramework libProfiles
-	${compile} ${debug} -o ${exe} Main.o -I${inc} -L. -lTools \
-		-lProfiles -lFramework ${ccflags}
+	${compile} ${debug} -o ${exe} Main.o -I${inc} -L. \
+		-lFramework -lProfiles -lTools ${ccflags}
 	mv *.a *.o ${obj}/
 
 Tools      = KernelFit.o Interpolate.o Random.o
