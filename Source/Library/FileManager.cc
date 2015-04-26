@@ -72,7 +72,7 @@ void FileManager::SavePositions(const std::vector<Vector> &positions,
             output << vec << std::endl;
         
         if (verbose)
-            std::cout << "done";
+            std::cout << "done\n";
             std::cout.flush();
         
     } else throw IOError("From FileManager::SavePositions(), I "
@@ -103,13 +103,46 @@ void FileManager::SaveRaw(const std::vector<double> &seperations,
             output << sep << std::endl;
         
         if (verbose)
-            std::cout << "done";
+            std::cout << "done\n";
             std::cout.flush();
         
     } else throw IOError("From FileManager::SaveRaw(), I "
     "couldn't open the file `" + filename + "`!");
 }
+
+void FileManager::SaveTemp( const std::vector<double> &coord,
+    const std::vector<double> &mean, const std::vector<double> &stdev,
+    const std::size_t trial){
     
+    // build file name
+    std::stringstream buffer;
+    buffer << tmp_path << trial << ".dat";
+    std::string filename = buffer.str();
+    
+    // open file and write positions
+    std::ofstream output( filename.c_str() );
+    
+    if (output) {
+        
+        output.precision(16);
+        
+        if (verbose) std::cout
+            << "\n\n Saving Profile data to `"
+            << filename << "` ... ";
+            std::cout.flush();
+        
+        for (std::size_t i = 0; i < coord.size(); i++)
+            output << coord[i] << " " << mean[i] << " "
+                   << stdev[i] << std::endl;
+        
+        if (verbose)
+            std::cout << "done\n";
+            std::cout.flush();
+        
+    } else throw IOError("From FileManager::SaveTemp(), I "
+        "couldn't open the file `" + filename + "`!");
+}
+
 } // namespace Gaia
 
 

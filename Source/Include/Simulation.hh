@@ -25,6 +25,7 @@ public:
 	~Simulation();
 
 	void Run();
+    void Debug();
 
 private:
 

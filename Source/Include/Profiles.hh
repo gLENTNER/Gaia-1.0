@@ -24,21 +24,21 @@ namespace Gaia {
 // Profile for the mass density of the galaxy disk (isotropic)
 class MassDensity: public ProfileBase {
 public:
-	
-	MassDensity(): ProfileBase("MassDensity"){ }
-	
-	virtual double Function(const Vector& p){
-	
-		double no     = 0.50; // normalization coefficient
-		double Rs     = 4.67; // scale radius for the disk
-		double Zthick = 0.50; // scale height of the thick disk
-		double Zthin  = 0.15; // scale height of the thin disk
+
+    MassDensity(): ProfileBase("MassDensity"){ }
+
+    virtual double Function(const Vector& p){
+
+        double no     = 0.50; // normalization coefficient
+        double Rs     = 4.67; // scale radius for the disk
+        double Zthick = 0.50; // scale height of the thick disk
+        double Zthin  = 0.15; // scale height of the thin disk
         double m      = 0.02; // relative scale, thick disk
-	
-		return no * exp( -pow(p.R(), 2.0) / (2.0 * Rs * Rs) ) * (
+
+        return no * exp( -pow(p.R(), 2.0) / (2.0 * Rs * Rs) ) * (
             exp( -pow(p.Z(), 2.0) / (2.0 * Zthin * Zthin) ) +
-			m * exp( -pow(p.Z(), 2.0) / (2.0 * Zthick * Zthick) ) );
-	}
+            m * exp( -pow(p.Z(), 2.0) / (2.0 * Zthick * Zthick) ) );
+    }
 };
     
 // model spirals

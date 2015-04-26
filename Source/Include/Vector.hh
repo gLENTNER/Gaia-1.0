@@ -52,7 +52,7 @@ public:
 
 	// return the polar angle
 	double Theta() const {
-		if (_x != 0.0 || _y != 0 || _z != 0) return acos(_z / Rho());
+		if (_x != 0.0 || _y != 0.0 || _z != 0.0) return acos(_z / Rho());
 		// in this program, R() should never be exactly zero;
 		// the odds of getting identically 0.0 for all x, y, and z is
 		// astronomically low.

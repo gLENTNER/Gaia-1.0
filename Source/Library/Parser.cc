@@ -16,6 +16,7 @@
 #include <map>
 #include <vector>
 #include <list>
+#include <set>
 #include <omp.h>
 #include <stdlib.h>
 
@@ -50,9 +51,10 @@ void Parser::Setup(const int argc, const char *argv[]){
 
 	// display usage
 	if ( argc == 1 ) throw Usage(
-    "Gaia [--num-particles=] [--num-trials=] [--num-threads=] [--set-verbose=0|1|2|3]\n"
-    "\t[--out-path=] [--raw-path=] [--tmp-path=] [--pos-path=] [--first-seed=]\n"
-    "\t[--rc-file=] [--no-analysis] [--keep-raw] [--keep-pos] [--debug] \n\n\t"
+    "Gaia [--num-particles=] [--num-trials=] [--num-threads=] [--set-verbose=0|1|2|3]\n\t"
+    "[--out-path=] [--raw-path=] [--tmp-path=] [--pos-path=] [--first-seed=]\n\t"
+    "[--sample-rate=] [--mean-bandwidth=] [--stdev-bandwidth=] [--rc-file=]\n\t"
+    "[--no-analysis] [--keep-raw] [--keep-pos] [--debug]\n\n\t"
     "An application for building 3D numerical models of systems of particles\n\t"
     "using a Monte Carlo rejection chain algorithm based on probability density\n\t"
     "functions (PDFs) defined by the user. A nearest neighbor analysis is \n\t"
@@ -62,10 +64,6 @@ void Parser::Setup(const int argc, const char *argv[]){
 	// turn argv into vector
 	for (int i = 1; i < argc; i++)
 		_cmd_args.push_back( std::string(argv[i]) );
-
-	// define `Command` map
-	// Command["set"]     = Set;
-	// Command["include"] = Include;
 
 	// set the defaults for the parameters
 	SetDefaults();
@@ -85,20 +83,23 @@ void Parser::Setup(const int argc, const char *argv[]){
 void Parser::SetDefaults(){
 
 	// default arguments
-	argument["--num-particles"] = "~";   // necessarily reset
-	argument["--num-trials"   ] = "30";
-	argument["--num-threads"  ] = "1";
-	argument["--set-verbose"  ] = "2";
-	argument["--out-path"     ] = "Gaia-out-";
-	argument["--raw-path"     ] = "Gaia-raw-";
-	argument["--tmp-path"     ] = "Gaia-tmp-";
-	argument["--pos-path"     ] = "Gaia-pos-";
-	argument["--no-analysis"  ] = "0";
-	argument["--keep-raw"     ] = "0";
-	argument["--keep-pos"     ] = "0";
-	argument["--rc-file"      ] = "~/.Gaiarc";
-	argument["--first-seed"   ] = "~"; // will be assigned if not given
-	argument["--debug"        ] = "0";
+	argument["--num-particles"  ] = "~";   // necessarily reset
+	argument["--num-trials"     ] = "30";
+	argument["--num-threads"    ] = "1";
+	argument["--set-verbose"    ] = "2";
+	argument["--out-path"       ] = "Gaia-out-";
+	argument["--raw-path"       ] = "Gaia-raw-";
+	argument["--tmp-path"       ] = "Gaia-tmp-";
+	argument["--pos-path"       ] = "Gaia-pos-";
+	argument["--no-analysis"    ] = "0";
+	argument["--keep-raw"       ] = "0";
+	argument["--keep-pos"       ] = "0";
+	argument["--rc-file"        ] = "~/.Gaiarc";
+	argument["--first-seed"     ] = "~"; // will be assigned if not given
+    argument["--sample-rate"    ] = "1";
+    argument["--mean-bandwidth" ] = "0"; // must be assigned for analysis!
+    argument["--stdev-bandwidth"] = "0"; // defaults to --mean-bandwidth
+	argument["--debug"          ] = "0";
 
 	// arguments who don't need an assigment
 	implicit["--no-analysis"] = "~";
@@ -107,8 +108,7 @@ void Parser::SetDefaults(){
 	implicit["--debug"      ] = "~";
 
 	// list values as `not given` before assignments
-	_given_xlims = _given_ylims  = _given_zlims = false;
-	_given_xy    = _given_radial = false;
+	_given_xlims = _given_ylims  = _given_zlims = _given_analysis = false;
 }
 
 // parse the commands in the configuration (rc) file
@@ -117,15 +117,19 @@ void Parser::ReadRC(){
 	// default location for `rc file`
 	_rc_file = argument["--rc-file"];
 
-	// look for alternative path to rc file in commandline arguments
-	for ( std::vector<std::string>::iterator iter = _cmd_args.begin();
-		iter != _cmd_args.end(); iter++ ){
+    // look for alternative path to rc file in commandline arguments
+    for ( const auto& arg : _cmd_args )
+        if (arg.find("--rc-file") != std::string::npos)
+            _rc_file = arg.substr(arg.find("=") + 1, arg.length());
 
-		std::string arg( *iter );
-
-		if ( arg.find("--rc-file=") != std::string::npos )
-			_rc_file = arg.substr(arg.find("=") + 1, arg.length());
-	}
+//	for ( std::vector<std::string>::iterator iter = _cmd_args.begin();
+//		iter != _cmd_args.end(); iter++ ){
+//
+//		std::string arg( *iter );
+//
+//		if ( arg.find("--rc-file=") != std::string::npos )
+//			_rc_file = arg.substr(arg.find("=") + 1, arg.length());
+//	}
 
 	// replace `~` with `$HOME`
 	ReplaceAll("~", std::string(getenv("HOME")), _rc_file);
@@ -267,12 +271,12 @@ void Parser::Rectify(){
 
 	// stringstream used to convert between types
 	std::stringstream convert;
-
+	double as_double; // allows for scientific notation and sign checking!
+    
 	// check particle numbers
 	if ( !given["--num-particles"] )
 		throw InputError("User must provide --num-particles for system!");
 	convert.str( argument["--num-particles"] );
-	double as_double; // allows for scientific notation!
 	if ( !( convert >> as_double ) || as_double < 2.0 )
 		throw InputError("--num-particles must take integer value > 2!");
 	_num_particles = as_double; // convert back to size_t
@@ -323,18 +327,10 @@ void Parser::Rectify(){
 	}
 
 	// `Analysis` must be given if not given `--no-analysis`
-	if ( !_given_xy && !_given_radial && !_no_analysis ){
+	if ( !_given_analysis && !_no_analysis ){
 		std::stringstream warning;
 		warning << "In file `" << _rc_file << "`, the `Analysis` domain went ";
 		warning << "unspecified, but the `--no-analysis` flag was not given!";
-		throw InputError( warning.str() );
-	}
-
-	// check for conflicting assignments
-	if ( _given_xy && _given_radial ){
-		std::stringstream warning;
-		warning << "In file `" << _rc_file << "`, there can be only one ";
-		warning << "assignment for the `Analysis` domain!";
 		throw InputError( warning.str() );
 	}
 
@@ -343,82 +339,39 @@ void Parser::Rectify(){
 	convert.str( argument["--first-seed"] );
 	if ( !given["--first-seed"] ) _first_seed = 19650218ULL;
 	else if ( !(convert >> _first_seed) )
-	throw InputError("--first-seed needs an interger value!");
-
+        throw InputError("--first-seed needs an interger value!");
+    
+    // set sample rate
+    if ( given["--sample-rate"] && given["--no-analysis"] )
+        throw InputError("You requested a specified sample rate but gave the "
+        "no-analysis flag. No analysis will be performed and your sample "
+        "rate will be ignored!");
+    convert.clear();
+    convert.str( argument["--sample-rate"] );
+    if ( !(convert >> _sample_rate) || _sample_rate < 0 || _sample_rate > 1 )
+        throw InputError("--sample-rate needs to be between 0 and 1.");
+    
+    // set mean bandwidth
+    if ( !given["--mean-bandwidth"] && !given["--no-analysis"] )
+        throw InputError("You have not specified a mean bandwidth and have "
+            "not given the no-analysis flag. I need to know a bandwidth for "
+            "the KernelFit alogrithm to fit your data!");
+    convert.clear();
+    convert.str( argument["--mean-bandwidth"] );
+    if ( !(convert >> _mean_bandwidth) || _mean_bandwidth < 0 )
+        throw InputError("--mean-bandwidth needs a positive number!");
+    
+    // set bandwidth for standard deviations
+    convert.clear();
+    convert.str( argument["--stdev-bandwidth"] );
+    if ( !(convert >> _stdev_bandwidth) || _stdev_bandwidth < 0 )
+        throw InputError("--stdev-bandwidth needs a positive number!");
+    if ( !given["--stdev-bandwidth"] )
+        _stdev_bandwidth = _mean_bandwidth;
+    
 	// check for `debug` mode
 	_debug_mode = given["--debug"] ? true : false;
 }
-
-void Parser::SetLimits(const std::string &limits, const std::string &begin,
-	const std::string &end){
-
-	double numeric[2];
-	std::stringstream convert(begin + " " + end);
-
-	if ( !( convert >> numeric[0] ) || !( convert >> numeric[1] ) ){
-		// these were not both numeric values!
-		std::stringstream warning;
-		warning << "In file `" << _rc_file << "` on line " << _line_number;
-		warning << ", `" << limits << "` needs numeric values!";
-		throw InputError( warning.str() );
-	}
-
-	std::vector<double> temp(numeric, numeric + 2);
-
-	switch (limits[0]){
-
-		case 'X': _x_limits = temp; _given_xlims = true; break;
-		case 'Y': _y_limits = temp; _given_ylims = true; break;
-		case 'Z': _z_limits = temp; _given_zlims = true; break;
-		// uh oh, how did we get here?
-		default: throw InputError("Parser::SetLimits() got non `XYZ` limit!");
-	}
-}
-
-void Parser::SetXY(const std::string &xres, const std::string &yres){
-
-	_analysis_domain = 3;
-	double numeric[2];
-	std::stringstream convert(xres + " " + yres);
-
-	if ( !( convert >> numeric[0] ) || !( convert >> numeric[1] ) ){
-		// these were not both numeric values!
-		std::stringstream warning;
-		warning << "In file `" << _rc_file << "` on line " << _line_number;
-		warning << ", `XY` needs numeric values!";
-		throw InputError( warning.str() );
-	}
-
-	std::vector<int> temp(numeric, numeric + 2);
-	_xy_resolution = temp;
-	_given_xy = true;
-}
-
-void Parser::SetRadial(const std::string &coord, const std::string &res){
-
-	if (coord == "R")
-		_analysis_domain = 1;
-	else if (coord == "Rho")
-		_analysis_domain = 2;
-	else
-		// how did we get here?
-		throw InputError("Parser::SetRadial() got non R/Rho setting!");
-
-	double numeric;
-	std::stringstream convert(res);
-
-	if ( !( convert >> numeric ) ){
-		// this was not a numeric value!
-		std::stringstream warning;
-		warning << "In file `" << _rc_file << "` on line " << _line_number;
-		warning << ", `" << coord << "` needs a numeric value!";
-		throw InputError( warning.str() );
-	}
-
-	_radial_resolution = numeric;
-	_given_radial = true;
-}
-
 
 void Parser::Set(const std::vector<std::string> &line){
 	//
@@ -450,51 +403,18 @@ void Parser::Set(const std::vector<std::string> &line){
 			warning << ", `" << line[1] << "` requires two values!";
 			throw InputError( warning.str() );
 		}
-		// assign the parameter
+		
+        // assign the parameter
 		SetLimits(line[1], line[2], line[3]);
 	}
 
 	else if ( line[1] == "Analysis" ){
 
-		// check for the three allowed categories
-		if ( line[2] != "R" && line[2] != "Rho" && line[2] != "XY"){
-			
-            std::stringstream warning;
-			warning << "In file `" << _rc_file << "` on line " << _line_number;
-			warning << ", `" << line[2] << "` is not a recognized ";
-			warning << "option for `Analysis`!";
-			throw InputError( warning.str() );
-		}
-
-		// we need one more parameter if it's XY
-		if ( line[2] == "XY" ){
-
-			// check for arguments
-			if ( line.size() < 5 ){
-				std::stringstream warning;
-				warning << "In file `" << _rc_file << "` on line " << _line_number;
-				warning << ", `XY` needs two values!";
-				throw InputError( warning.str() );
-			}
-
-			SetXY(line[3], line[4]);
-		}
-
-		else {
-
-			// check for arguments
-			if ( line.size() < 4 ){
-				std::stringstream warning;
-				warning << "In file `" << _rc_file << "` on line " << _line_number;
-				warning << ", `" << line[2] << "` needs a values!";
-				throw InputError( warning.str() );
-			}
-
-			SetRadial(line[2], line[3]);
-		}
+        SetAnalysis(line);
 
 	} else {
-		// unrecognized command
+		
+        // unrecognized command
 		std::stringstream warning;
 		warning << "In file `" << _rc_file << "` on line " << _line_number;
 		warning << ", `" << line[1] << "` is not a recognized parameter!";
@@ -502,7 +422,161 @@ void Parser::Set(const std::vector<std::string> &line){
 	}
 }
 
+void Parser::SetLimits(const std::string &limits, const std::string &begin,
+                       const std::string &end){
 
+    //
+    // From Set(), set the Xlimits, Ylimits, or Zlimits.
+    //
+    
+    double numeric[2];
+    std::stringstream convert(begin + " " + end);
+    
+    if ( !( convert >> numeric[0] ) || !( convert >> numeric[1] ) ){
+        // these were not both numeric values!
+        std::stringstream warning;
+        warning << "In file `" << _rc_file << "` on line " << _line_number;
+        warning << ", `" << limits << "` needs numeric values!";
+        throw InputError( warning.str() );
+    }
+    
+    std::vector<double> temp(numeric, numeric + 2);
+    
+    switch (limits[0]){
+            
+        case 'X': _x_limits = temp; _given_xlims = true; break;
+        case 'Y': _y_limits = temp; _given_ylims = true; break;
+        case 'Z': _z_limits = temp; _given_zlims = true; break;
+        
+        // uh oh, how did we get here?
+        default: throw InputError("Parser::SetLimits() got non `XYZ` limit!");
+    }
+}
+
+void Parser::SetAnalysis(const std::vector<std::string> &line ){
+    
+    //
+    // parser what type of analysis we'll be doing
+    //
+    
+    // check if we've already been here (_given_analysis is set equal
+    // to false in the constructor)
+    if ( _given_analysis ){
+
+        std::stringstream warning;
+        warning << "In file `" << _rc_file << "` on line " << _line_number;
+        warning << ", `" << line[1] << "` requires at least two values!";
+        throw InputError( warning.str() );
+        
+    } else _given_analysis = true;
+    
+    // set of available coordinates
+    std::set<std::string> coord = {"X","Y","Z","R","Rho","Phi","Theta"};
+    double as_double; // allows for sign checking and scientific notation
+    
+    // check that we have at least a single coordinate and a resolution
+    if ( line.size() < 4 ){
+        
+        // insufficient arguments
+        std::stringstream warning;
+        warning << "In file `" << _rc_file << "` on line " << _line_number;
+        warning << ", `" << line[1] << "` requires at least two values!";
+        throw InputError( warning.str() );
+    }
+    
+    if ( coord.find(line[2]) == coord.end() ){
+        
+        // the first item has to be an axis
+        std::stringstream warning;
+        warning << "In file `" << _rc_file << "` on line " << _line_number;
+        warning << ", `" << line[2] << "` was not a recognized axis!";
+        throw InputError( warning.str() );
+    }
+    
+    if ( coord.find(line[3]) == coord.end() ){
+        
+        // I assume that if the 4th entry is not a recognized axis,
+        // it must be the resolution for the first axis
+        std::stringstream convert(line[3]);
+       
+        if ( !(convert >> as_double) ){
+            
+            // not a numeric type!
+            std::stringstream warning;
+            warning << "In file `" << _rc_file << "` on line " << _line_number;
+            warning << ", `" << line[3] << "` was not a recognized as a ";
+            warning << "coordinate. We take it to be the resolution of `";
+            warning << line[2] << "` then, but this was not a numeric value!";
+            throw InputError( warning.str() );
+        
+        } else if ( as_double < 0 ){
+            
+            // must be positive
+            std::stringstream warning;
+            warning << "In file `" << _rc_file << "` on line " << _line_number;
+            warning << ", the resolution given for `" << line[2];
+            warning << "` must be a positive value!";
+            throw InputError( warning.str() );
+        }
+        
+        _axes.push_back(line[2]);
+        _resolution.push_back(as_double);
+        
+    } else {
+        
+        // You have specified two valid axes and now we read in the
+        // two necessary resolution values.
+        
+        // record the valid axes coordinates
+        _axes.push_back(line[2]);
+        _axes.push_back(line[3]);
+        
+        // check that we have sufficient arguments
+        if ( line.size() != 6 ){
+            
+            // insufficient arguments
+            std::stringstream warning;
+            warning << "In file `" << _rc_file << "` on line " << _line_number;
+            warning << ", `" << line[2] << "` and `" << line[3] << "` ";
+            warning << "were recognized as valid axes, so I expect two values ";
+            warning << "for the resolutions of these axes, yet ";
+            warning << line.size() - 4 << " was given!";
+            throw InputError( warning.str() );
+        }
+        
+        // temporary vector means I don't need two sets of error messages
+        std::vector<std::string> res = {line[4], line[5]};
+        
+        for (const auto& num : res){
+            
+            std::stringstream convert(num);
+            
+            if ( !(convert >> as_double) ){
+                
+                // not a numeric type!
+                std::stringstream warning;
+                warning << "In file `" << _rc_file << "` on line ";
+                warning << _line_number << ", `" << num;
+                warning << "`, is not an integer value!";
+                throw InputError( warning.str() );
+            
+            } else if ( as_double < 0 ){
+                
+                // must be positive
+                std::stringstream warning;
+                warning << "In file `" << _rc_file << "` on line ";
+                warning << _line_number << ", `" << num;
+                warning << "`, is not a positive integer!";
+                throw InputError( warning.str() );
+            }
+
+            _resolution.push_back(as_double);
+        }
+        
+    }
+    
+}
+    
 void Parser::Include(const std::vector<std::string> &line){
 
 	//
@@ -596,7 +670,7 @@ void Parser::ReplaceAll(const std::string &search_str,
 }
 
 // retrieval functions, `getters`
-unsigned long long Parser::GetNumParticles() const {
+std::size_t Parser::GetNumParticles() const {
 	return _num_particles;
 }
 
@@ -621,7 +695,7 @@ bool Parser::GetKeepRawFlag() const {
 }
 
 bool Parser::GetAnalysisFlag() const {
-	return _no_analysis;
+	return !_no_analysis;
 }
 
 bool Parser::GetDebuggerFlag() const {
@@ -640,16 +714,12 @@ std::vector<double> Parser::GetZlimits() const {
 	return _z_limits;
 }
 
-std::vector<int> Parser::GetXYResolution() const {
-	return _xy_resolution;
+std::vector<std::size_t> Parser::GetResolution() const {
+    return _resolution;
 }
 
-int Parser::GetRadialResolution() const {
-	return _radial_resolution;
-}
-
-int Parser::GetAnalysisDomain() const {
-	return _analysis_domain;
+std::vector<std::string> Parser::GetAxes() const {
+    return _axes;
 }
 
 std::string Parser::GetOutPath() const {
@@ -674,6 +744,18 @@ std::string Parser::GetRCFile() const {
 
 unsigned long long Parser::GetFirstSeed() const {
 	return _first_seed;
+}
+    
+double Parser::GetSampleRate() const {
+    return _sample_rate;
+}
+    
+double Parser::GetMeanBandwidth() const {
+    return _mean_bandwidth;
+}
+    
+double Parser::GetStdevBandwidth() const {
+    return _stdev_bandwidth;
 }
 
 std::map<std::string, std::string> Parser::GetUsedPDFs() const {

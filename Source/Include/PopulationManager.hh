@@ -70,21 +70,43 @@ private:
     // parser
     Parser *parser;
 
+    // helper function for building the `Axis` map
+    std::vector<double> Linespace(const double, const double, const std::size_t);
+    
 	// limits for volume
 	std::vector<double> Xlimits, Ylimits, Zlimits;
+    
+    // map analysis coordinates to line-spaces
+    std::map<std::string, std::vector<double>> Axis;
+    std::vector<std::string> axis;
+    std::vector<std::size_t> resolution;
+    
+    // map of functions, (just like in ProfileBase)
+    std::map< std::string, double (*)(const Vector&) > Coord;
+    
+    // functions in the above map (calls to vector coordinates)
+    static double X(const Vector &vec)     { return vec.X();     }
+    static double Y(const Vector &vec)     { return vec.Y();     }
+    static double Z(const Vector &vec)     { return vec.Z();     }
+    static double R(const Vector &vec)     { return vec.R();     }
+    static double Rho(const Vector &vec)   { return vec.Rho();   }
+    static double Phi(const Vector &vec)   { return vec.Phi();   }
+    static double Theta(const Vector &vec) { return vec.Theta(); }
 
 	// vector of `Vector` positions
 	std::vector<Vector>   positions;
 	std::vector<Interval> interval;
 
-	// nearest neighbor seperations
-	std::vector<double> seperations;
+	// nearest neighbor seperations and match to specified coordinates
+	std::vector<double> seperations, coordinates;
     double max_seperation;
 
 	// simulation parameters from parser
-	std::size_t N;
+	std::size_t N, samples;
 	unsigned long long first_seed;
-	int threads, verbose, analysis;
+	int threads, verbose;
+    bool analysis;
+    double mean_bandwidth, stdev_bandwidth;
 
 };
 

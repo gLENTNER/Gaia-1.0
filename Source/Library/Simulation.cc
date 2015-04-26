@@ -45,85 +45,8 @@ Simulation::Simulation(const int argc, const char *argv[]){
     file = FileManager::GetInstance();
     file -> Initialize();
 
-	// FIXME: clean up notation for debugging output!!!!!
-	// --------------------------------------------------
-
-	// items for debugging mode
-	std::vector<double> xlim = parser -> GetXlimits();
-	std::vector<double> ylim = parser -> GetYlimits();
-	std::vector<double> zlim = parser -> GetZlimits();
-	std::string xyres;
-	int radial_res;
-	std::string analysis_coord;
-	int analysis = parser -> GetAnalysisDomain();
-	std::stringstream convert;
-	std::vector<int> xy;
-	switch ( analysis ){
-		case 1:
-			analysis_coord  = "R (Cyclindrical)";
-			radial_res = parser -> GetRadialResolution();
-			break;
-		case 2:
-			analysis_coord  = "Rho (Spherical)";
-			radial_res = parser -> GetRadialResolution();
-			break;
-		case 3:
-			analysis_coord  = "XY (Plane)";
-			xy = parser -> GetXYResolution();
-			convert << "(" << xy[0] << ", " << xy[1] << ")\n";
-			xyres = convert.str();
-			break;
-
-		default:
-			analysis_coord = "None (given --no-analysis)";
-	}
-
-	std::string keep_pos    = parser -> GetKeepPosFlag()  ? "true" : "false";
-	std::string keep_raw    = parser -> GetKeepRawFlag()  ? "true" : "false";
-	std::string do_analysis = parser -> GetAnalysisFlag() ? "false" : "true";
-
-	if (analysis != 3) xyres = "None (unspecified)";
-	convert.clear();
-	std::string rres;
-	if ( analysis == 1 || analysis == 2 ) {
-		convert << radial_res;
-		rres = convert.str();
-
-	} else rres = "None (unspecified)";
-
-	// show parameters if in `debug` mode
-	if ( parser -> GetDebuggerFlag() ){
-		std::cout << "\n" <<
-		" Debugging Mode (on) | The following parameters are in use: \n"
-		" -----------------------------------------------------------\n"
-		"\n Number of Particles    = " << parser -> GetNumParticles() <<
-		"\n Number of Trials       = " << parser -> GetNumTrials()    <<
-		"\n Number of Threads      = " << parser -> GetNumThreads()   <<
-		"\n Verbosity              = " << parser -> GetVerbosity()    <<
-		"\n Keep Positions         = " << keep_pos <<
-		"\n Keep Raw files         = " << keep_raw <<
-		"\n Do Analysis            = " << do_analysis <<
-		"\n X-limits               = (" << xlim[0] << ", " << xlim[1] << ")" <<
-		"\n Y-limits               = (" << ylim[0] << ", " << ylim[1] << ")" <<
-		"\n Z-limits               = (" << zlim[0] << ", " << zlim[1] << ")" <<
-		"\n Analysis Domain        = " << analysis_coord <<
-		"\n X-Y Resolution         = " << xyres <<
-		"\n Radial Resolution      = " << radial_res <<
-		"\n Output file pattern    = " << parser -> GetOutPath() << "*.dat" <<
-		"\n Raw file pattern       = " << parser -> GetRawPath() << "*.dat" <<
-		"\n Temporary file pattern = " << parser -> GetTmpPath() << "*.bin" <<
-		"\n Position file pattern  = " << parser -> GetPosPath() << "*.dat" <<
-		"\n RC file used           = " << parser -> GetRCFile() <<
-		"\n First Seed             = " << parser -> GetFirstSeed() <<
-		"\n" <<
-		"\n Used PDFs:" <<
-		"\n -----------------------\n\n";
-
-		for ( const auto& pdf : parser -> GetUsedPDFs() ){
-			std::cout << " " << pdf.first;
-			std::cout << " `" << pdf.second << "`\n";
-		}
-	}
+    if ( parser -> GetDebuggerFlag() )
+        Debug();
 }
 
 Simulation::~Simulation(){
@@ -149,8 +72,8 @@ void Simulation::Run(){
 	// get simulation parameters
 	int verbose    = parser -> GetVerbosity();
 	int trials     = parser -> GetNumTrials();
-	int analysis   = parser -> GetAnalysisDomain();
-    std::size_t  N = parser -> GetNumParticles();
+	bool analysis  = parser -> GetAnalysisFlag();
+    std::size_t N  = parser -> GetNumParticles();
 
 	// greet the user
 	if (verbose) std::cout
@@ -172,8 +95,8 @@ void Simulation::Run(){
             // find the nearest neighbor seperations
             population -> FindNeighbors(t);
 
-//            // fit a profile to curve
-//            population -> ProfileFit(t);
+            // fit a profile to curve
+            population -> ProfileFit(t);
         }
     }
 
@@ -187,6 +110,87 @@ void Simulation::Run(){
 
 	if (verbose)
 		display -> TotalElapsedTime();
+}
+
+void Simulation::Debug(){
+    
+    // FIXME: clean up notation for debugging output!!!!!
+    // --------------------------------------------------
+    
+    // items for debugging mode
+    std::vector<double> xlim = parser -> GetXlimits();
+    std::vector<double> ylim = parser -> GetYlimits();
+    std::vector<double> zlim = parser -> GetZlimits();
+    
+    std::vector<std::string> axes = parser -> GetAxes();
+    std::vector<std::size_t> res  = parser -> GetResolution();
+    
+    std::string analysis_string = "";
+    for ( int i = 0; i < axes.size(); i++ ){
+        
+        std::stringstream convert;
+        
+        if ( !analysis_string.empty() )
+            convert << ", ";
+        
+        convert << "`" << axes[i] << "` (" << res[i] << ")";
+        
+        analysis_string += convert.str();
+    }
+    
+    if ( !(parser -> GetAnalysisFlag()) )
+        analysis_string = "None";
+    
+    std::string keep_pos    = parser -> GetKeepPosFlag()  ? "true" : "false";
+    std::string keep_raw    = parser -> GetKeepRawFlag()  ? "true" : "false";
+    std::string do_analysis = parser -> GetAnalysisFlag() ? "true" : "false";
+    
+    std::stringstream buffer;
+
+    buffer << parser -> GetMeanBandwidth();
+    std::string m_bandwidth = buffer.str();
+    if ( m_bandwidth == "0" )
+        m_bandwidth = "None";
+    
+    buffer.clear();
+    buffer << parser -> GetStdevBandwidth();
+    std::string s_bandwidth = buffer.str();
+    if ( s_bandwidth == "0" )
+        s_bandwidth = "None";
+    
+    std::cout << "\n" <<
+    " Debugging Mode (on) | The following parameters are in use: \n"
+    " -----------------------------------------------------------\n"
+    "\n Number of Particles    = " << parser -> GetNumParticles() <<
+    "\n Number of Trials       = " << parser -> GetNumTrials()    <<
+    "\n Number of Threads      = " << parser -> GetNumThreads()   <<
+    "\n Verbosity              = " << parser -> GetVerbosity()    <<
+    "\n Keep Positions         = " << keep_pos <<
+    "\n Keep Raw files         = " << keep_raw <<
+    "\n X-limits               = (" << xlim[0] << ", " << xlim[1] << ")" <<
+    "\n Y-limits               = (" << ylim[0] << ", " << ylim[1] << ")" <<
+    "\n Z-limits               = (" << zlim[0] << ", " << zlim[1] << ")" <<
+    "\n First Seed             = " << parser -> GetFirstSeed() <<
+    "\n Sample Rate            = " << parser -> GetSampleRate() <<
+    "\n Mean Bandwidth         = " << m_bandwidth <<
+    "\n Stdev Bandwidth        = " << s_bandwidth <<
+    "\n Analysis               = " << analysis_string <<
+    "\n Output file pattern    = " << parser -> GetOutPath() << "*.dat" <<
+    "\n Raw file pattern       = " << parser -> GetRawPath() << "*.dat" <<
+    "\n Temporary file pattern = " << parser -> GetTmpPath() << "*.dat" <<
+    "\n Position file pattern  = " << parser -> GetPosPath() << "*.dat" <<
+    "\n RC file used           = " << parser -> GetRCFile() <<
+    "\n" <<
+    "\n Used PDFs:" <<
+    "\n\n";
+    
+    for ( const auto& pdf : parser -> GetUsedPDFs() ){
+        
+        std::string pdftype = pdf.second.empty() ? "(Analytical)" :
+            "(from file `" + pdf.second + "`)";
+        
+        std::cout << "\t * " << pdf.first << ", " << pdftype << std::endl;
+    }
 }
 
 } // namespace Gaia

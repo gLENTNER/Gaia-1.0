@@ -28,7 +28,7 @@ public:
 	void Setup(const int argc, const char *argv[]);
 
 	// retrieval functions, "getters"
-	unsigned long long GetNumParticles() const;
+    std::size_t GetNumParticles() const;
 	int GetNumTrials() const;
 	int GetNumThreads() const;
 	int GetVerbosity() const;
@@ -39,15 +39,17 @@ public:
 	std::vector<double> GetXlimits() const;
 	std::vector<double> GetYlimits() const;
 	std::vector<double> GetZlimits() const;
-	std::vector<int> GetXYResolution() const;
-	int GetRadialResolution() const;
-	int GetAnalysisDomain() const;
+    std::vector<std::size_t> GetResolution() const;
+    std::vector<std::string> GetAxes() const;
 	std::string GetOutPath() const;
 	std::string GetRawPath() const;
 	std::string GetTmpPath() const;
 	std::string GetPosPath() const;
 	std::string GetRCFile() const;
 	unsigned long long GetFirstSeed() const;
+    double GetSampleRate() const;
+    double GetMeanBandwidth() const;
+    double GetStdevBandwidth() const;
 	std::map<std::string, std::string> GetUsedPDFs() const;
 
 private:
@@ -69,8 +71,9 @@ private:
 
 	// helper functions
 	void SetLimits(const std::string&, const std::string&, const std::string&);
-	void SetXY(const std::string&, const std::string&);
-	void SetRadial(const std::string&, const std::string&);
+    void SetAnalysis(const std::vector<std::string>& );
+//	void SetXY(const std::string&, const std::string&);
+//	void SetRadial(const std::string&, const std::string&);
     
     void Clip(std::string &input_string, const std::string &delim);
     std::vector<std::string> Split(const std::string &input);
@@ -86,27 +89,22 @@ private:
 	std::map<std::string, bool> given;
 
 	// simulation parameters, see SetDefaults() for defaults
-	unsigned long long _num_particles;
 	int _verbose, _num_threads, _num_trials, _line_number;
 	bool _keep_raw, _keep_pos, _no_analysis, _debug_mode;
-	std::string _out_path, _raw_path, _tmp_path, _pos_path;
-	std::string _rc_file;
+    std::size_t _num_particles;
+	std::string _out_path, _raw_path, _tmp_path, _pos_path, _rc_file;
 	unsigned long long _first_seed;
+    double _sample_rate, _mean_bandwidth, _stdev_bandwidth;
 
 	// vector for `argv`
 	std::vector<std::string> _cmd_args;
 
 	// items from rc file
 	std::vector<double> _x_limits, _y_limits, _z_limits;
-	std::vector<int> _xy_resolution;
-	int _radial_resolution, _analysis_domain;
-
-	bool _given_xlims, _given_ylims, _given_zlims;
-	bool _given_xy, _given_radial;
-
-	// map of `Command` functions for RC-file parsing
-	// std::map<std::string, void (*)(const std::vector<std::string>&,
-	// 	const std::string &, int) > Command;
+    std::vector<std::size_t> _resolution;
+    std::vector<std::string> _axes;
+    
+	bool _given_xlims, _given_ylims, _given_zlims, _given_analysis;
 
 	// map of profile names from RC-file with file paths
 	std::map<std::string, std::string> UsedPDFs;
