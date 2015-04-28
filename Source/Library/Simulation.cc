@@ -21,7 +21,7 @@ namespace Gaia {
 
 Simulation::Simulation(const int argc, const char *argv[]){
 
-	// set population manager pointer to NULL immediately
+	// set population manager pointer to nullptr immediately
 	population = nullptr;
 
 	// start the clock right away
@@ -31,7 +31,7 @@ Simulation::Simulation(const int argc, const char *argv[]){
 	// create parser and interpret command line arguments + RC file
 	parser = Parser::GetInstance();
 	parser -> Setup(argc, argv);
-    
+
     if ( parser -> GetVerbosity() ) std::cout
         << "\n Welcome to GAIA | version 1.0.1"
         << "\n Copyright (c) Geoffrey Lentner 2015 (GPLv3)\n"
@@ -113,51 +113,51 @@ void Simulation::Run(){
 }
 
 void Simulation::Debug(){
-    
+
     // FIXME: clean up notation for debugging output!!!!!
     // --------------------------------------------------
-    
+
     // items for debugging mode
     std::vector<double> xlim = parser -> GetXlimits();
     std::vector<double> ylim = parser -> GetYlimits();
     std::vector<double> zlim = parser -> GetZlimits();
-    
+
     std::vector<std::string> axes = parser -> GetAxes();
     std::vector<std::size_t> res  = parser -> GetResolution();
-    
+
     std::string analysis_string = "";
     for ( int i = 0; i < axes.size(); i++ ){
-        
+
         std::stringstream convert;
-        
+
         if ( !analysis_string.empty() )
             convert << ", ";
-        
+
         convert << "`" << axes[i] << "` (" << res[i] << ")";
-        
+
         analysis_string += convert.str();
     }
-    
+
     if ( !(parser -> GetAnalysisFlag()) )
         analysis_string = "None";
-    
+
     std::string keep_pos    = parser -> GetKeepPosFlag()  ? "true" : "false";
     std::string keep_raw    = parser -> GetKeepRawFlag()  ? "true" : "false";
     std::string do_analysis = parser -> GetAnalysisFlag() ? "true" : "false";
-    
+
     std::stringstream buffer;
 
     buffer << parser -> GetMeanBandwidth();
     std::string m_bandwidth = buffer.str();
     if ( m_bandwidth == "0" )
         m_bandwidth = "None";
-    
+
     buffer.clear();
     buffer << parser -> GetStdevBandwidth();
     std::string s_bandwidth = buffer.str();
     if ( s_bandwidth == "0" )
         s_bandwidth = "None";
-    
+
     std::cout << "\n" <<
     " Debugging Mode (on) | The following parameters are in use: \n"
     " -----------------------------------------------------------\n"
@@ -183,12 +183,12 @@ void Simulation::Debug(){
     "\n" <<
     "\n Used PDFs:" <<
     "\n\n";
-    
+
     for ( const auto& pdf : parser -> GetUsedPDFs() ){
-        
+
         std::string pdftype = pdf.second.empty() ? "(Analytical)" :
             "(from file `" + pdf.second + "`)";
-        
+
         std::cout << "\t * " << pdf.first << ", " << pdftype << std::endl;
     }
 }

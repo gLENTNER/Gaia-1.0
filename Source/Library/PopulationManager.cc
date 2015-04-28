@@ -156,7 +156,7 @@ void PopulationManager::Build(const int trial){
 
     if ( verbose > 2 ) std::cout
         << "\n --------------------------------------------------"
-        << "\n Building population #" << trial << std::endl;
+        << "\n Building population #" << trial + 1 << std::endl;
     
 	#pragma omp parallel for
 	for (int i = 0; i < threads; i++)
@@ -261,7 +261,7 @@ void PopulationManager::ProfileFit(const int trial){
         // initialize the KernelFit object
         KernelFit1D<double> kernel(coords, seperations, mean_bandwidth);
         
-        // solve for the profile throught the data
+        // solve for the profile through the data
         std::vector<double> mean = kernel.Solve( Axis[ axis[0] ] );
         
         // set new bandwidth

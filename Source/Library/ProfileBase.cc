@@ -23,8 +23,8 @@ ProfileBase::ProfileBase(const std::string &name,
 	const std::string &axis1, const std::string &axis2){
 
 	// set pointers to NULL immediately
-	Linear_Data   = NULL;
-	BiLinear_Data = NULL;
+	Linear_Data   = nullptr;
+	BiLinear_Data = nullptr;
 
 	// set name
 	_name = name;
@@ -208,18 +208,18 @@ void ProfileBase::Initialize(std::string &filename){
 			warning << "of the available coordinates!\n";
 
 			throw ProfileError( warning.str() );
-		
+
         } else if ( Limits.find(_axis1) == Limits.end() ||
                    Limits.find(_axis2) == Limits.end() ){
-            
+
             std::stringstream warning;
             warning << "In `" << _name << "` from `Profiles.hh`, one or ";
             warning << "more of the axis specified does not match any ";
             warning << "of the allowed coordinates!\n";
-            
+
             throw ProfileError( warning.str() );
         }
-        
+
         // the `x` and `y` are now line-spaces
         _x = Linespace(Limits[_axis1][0], Limits[_axis1][1], _data[0].size());
         _y = Linespace(Limits[_axis2][0], Limits[_axis2][1], _data.size());
@@ -278,15 +278,15 @@ std::vector<double> ProfileBase::Linespace(const double start, const double end,
 
 	return linespace;
 }
-    
+
 // replace all instances of `search_str` in `input_str` with `replace_str`
 void ProfileBase::ReplaceAll(const std::string &search_str,
     const std::string &replace_str, std::string& input_str ){
-    
+
     std::size_t pos = 0;
-    
+
     while ( ( pos = input_str.find(search_str, pos) ) != std::string::npos ){
-        
+
         input_str.replace( pos, search_str.length( ), replace_str );
         pos += replace_str.length( );
     }

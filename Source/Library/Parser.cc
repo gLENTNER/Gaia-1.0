@@ -26,7 +26,7 @@
 namespace Gaia {
 
 // static pointer for singleton class
-Parser* Parser::instance = NULL;
+Parser* Parser::instance = nullptr;
 
 // retrieval of pointer
 Parser* Parser::GetInstance() {
@@ -272,7 +272,7 @@ void Parser::Rectify(){
 	// stringstream used to convert between types
 	std::stringstream convert;
 	double as_double; // allows for scientific notation and sign checking!
-    
+
 	// check particle numbers
 	if ( !given["--num-particles"] )
 		throw InputError("User must provide --num-particles for system!");
@@ -295,7 +295,7 @@ void Parser::Rectify(){
 	if ( _num_threads > omp_get_max_threads() )
 		throw InputError( "OpenMP says you have less than " +
 			argument["--num-threads"] + " available!" );
-    
+
     // set threads
     omp_set_num_threads(_num_threads);
 
@@ -340,7 +340,7 @@ void Parser::Rectify(){
 	if ( !given["--first-seed"] ) _first_seed = 19650218ULL;
 	else if ( !(convert >> _first_seed) )
         throw InputError("--first-seed needs an interger value!");
-    
+
     // set sample rate
     if ( given["--sample-rate"] && given["--no-analysis"] )
         throw InputError("You requested a specified sample rate but gave the "
@@ -350,7 +350,7 @@ void Parser::Rectify(){
     convert.str( argument["--sample-rate"] );
     if ( !(convert >> _sample_rate) || _sample_rate < 0 || _sample_rate > 1 )
         throw InputError("--sample-rate needs to be between 0 and 1.");
-    
+
     // set mean bandwidth
     if ( !given["--mean-bandwidth"] && !given["--no-analysis"] )
         throw InputError("You have not specified a mean bandwidth and have "
@@ -360,7 +360,7 @@ void Parser::Rectify(){
     convert.str( argument["--mean-bandwidth"] );
     if ( !(convert >> _mean_bandwidth) || _mean_bandwidth < 0 )
         throw InputError("--mean-bandwidth needs a positive number!");
-    
+
     // set bandwidth for standard deviations
     convert.clear();
     convert.str( argument["--stdev-bandwidth"] );
@@ -368,7 +368,7 @@ void Parser::Rectify(){
         throw InputError("--stdev-bandwidth needs a positive number!");
     if ( !given["--stdev-bandwidth"] )
         _stdev_bandwidth = _mean_bandwidth;
-    
+
 	// check for `debug` mode
 	_debug_mode = given["--debug"] ? true : false;
 }
@@ -403,7 +403,7 @@ void Parser::Set(const std::vector<std::string> &line){
 			warning << ", `" << line[1] << "` requires two values!";
 			throw InputError( warning.str() );
 		}
-		
+
         // assign the parameter
 		SetLimits(line[1], line[2], line[3]);
 	}
@@ -413,7 +413,7 @@ void Parser::Set(const std::vector<std::string> &line){
         SetAnalysis(line);
 
 	} else {
-		
+
         // unrecognized command
 		std::stringstream warning;
 		warning << "In file `" << _rc_file << "` on line " << _line_number;
@@ -428,10 +428,10 @@ void Parser::SetLimits(const std::string &limits, const std::string &begin,
     //
     // From Set(), set the Xlimits, Ylimits, or Zlimits.
     //
-    
+
     double numeric[2];
     std::stringstream convert(begin + " " + end);
-    
+
     if ( !( convert >> numeric[0] ) || !( convert >> numeric[1] ) ){
         // these were not both numeric values!
         std::stringstream warning;
@@ -439,26 +439,26 @@ void Parser::SetLimits(const std::string &limits, const std::string &begin,
         warning << ", `" << limits << "` needs numeric values!";
         throw InputError( warning.str() );
     }
-    
+
     std::vector<double> temp(numeric, numeric + 2);
-    
+
     switch (limits[0]){
-            
+
         case 'X': _x_limits = temp; _given_xlims = true; break;
         case 'Y': _y_limits = temp; _given_ylims = true; break;
         case 'Z': _z_limits = temp; _given_zlims = true; break;
-        
+
         // uh oh, how did we get here?
         default: throw InputError("Parser::SetLimits() got non `XYZ` limit!");
     }
 }
 
 void Parser::SetAnalysis(const std::vector<std::string> &line ){
-    
+
     //
     // parser what type of analysis we'll be doing
     //
-    
+
     // check if we've already been here (_given_analysis is set equal
     // to false in the constructor)
     if ( _given_analysis ){
@@ -467,40 +467,40 @@ void Parser::SetAnalysis(const std::vector<std::string> &line ){
         warning << "In file `" << _rc_file << "` on line " << _line_number;
         warning << ", `" << line[1] << "` requires at least two values!";
         throw InputError( warning.str() );
-        
+
     } else _given_analysis = true;
-    
+
     // set of available coordinates
     std::set<std::string> coord = {"X","Y","Z","R","Rho","Phi","Theta"};
     double as_double; // allows for sign checking and scientific notation
-    
+
     // check that we have at least a single coordinate and a resolution
     if ( line.size() < 4 ){
-        
+
         // insufficient arguments
         std::stringstream warning;
         warning << "In file `" << _rc_file << "` on line " << _line_number;
         warning << ", `" << line[1] << "` requires at least two values!";
         throw InputError( warning.str() );
     }
-    
+
     if ( coord.find(line[2]) == coord.end() ){
-        
+
         // the first item has to be an axis
         std::stringstream warning;
         warning << "In file `" << _rc_file << "` on line " << _line_number;
         warning << ", `" << line[2] << "` was not a recognized axis!";
         throw InputError( warning.str() );
     }
-    
+
     if ( coord.find(line[3]) == coord.end() ){
-        
+
         // I assume that if the 4th entry is not a recognized axis,
         // it must be the resolution for the first axis
         std::stringstream convert(line[3]);
-       
+
         if ( !(convert >> as_double) ){
-            
+
             // not a numeric type!
             std::stringstream warning;
             warning << "In file `" << _rc_file << "` on line " << _line_number;
@@ -508,9 +508,9 @@ void Parser::SetAnalysis(const std::vector<std::string> &line ){
             warning << "coordinate. We take it to be the resolution of `";
             warning << line[2] << "` then, but this was not a numeric value!";
             throw InputError( warning.str() );
-        
+
         } else if ( as_double < 0 ){
-            
+
             // must be positive
             std::stringstream warning;
             warning << "In file `" << _rc_file << "` on line " << _line_number;
@@ -518,22 +518,22 @@ void Parser::SetAnalysis(const std::vector<std::string> &line ){
             warning << "` must be a positive value!";
             throw InputError( warning.str() );
         }
-        
+
         _axes.push_back(line[2]);
         _resolution.push_back(as_double);
-        
+
     } else {
-        
+
         // You have specified two valid axes and now we read in the
         // two necessary resolution values.
-        
+
         // record the valid axes coordinates
         _axes.push_back(line[2]);
         _axes.push_back(line[3]);
-        
+
         // check that we have sufficient arguments
         if ( line.size() != 6 ){
-            
+
             // insufficient arguments
             std::stringstream warning;
             warning << "In file `" << _rc_file << "` on line " << _line_number;
@@ -543,25 +543,25 @@ void Parser::SetAnalysis(const std::vector<std::string> &line ){
             warning << line.size() - 4 << " was given!";
             throw InputError( warning.str() );
         }
-        
+
         // temporary vector means I don't need two sets of error messages
         std::vector<std::string> res = {line[4], line[5]};
-        
+
         for (const auto& num : res){
-            
+
             std::stringstream convert(num);
-            
+
             if ( !(convert >> as_double) ){
-                
+
                 // not a numeric type!
                 std::stringstream warning;
                 warning << "In file `" << _rc_file << "` on line ";
                 warning << _line_number << ", `" << num;
                 warning << "`, is not an integer value!";
                 throw InputError( warning.str() );
-            
+
             } else if ( as_double < 0 ){
-                
+
                 // must be positive
                 std::stringstream warning;
                 warning << "In file `" << _rc_file << "` on line ";
@@ -572,11 +572,11 @@ void Parser::SetAnalysis(const std::vector<std::string> &line ){
 
             _resolution.push_back(as_double);
         }
-        
+
     }
-    
+
 }
-    
+
 void Parser::Include(const std::vector<std::string> &line){
 
 	//
@@ -616,54 +616,54 @@ void Parser::Include(const std::vector<std::string> &line){
 
 // remove all characters after `delim`
 void Parser::Clip(std::string &input_string, const std::string &delim){
-    
+
     std::size_t pos = input_string.find(delim);
-    
+
     if ( pos != std::string::npos )
         input_string.replace(pos, input_string.length(), "");
 }
 
 // split a string into `words`, grouping quoted words
 std::vector<std::string> Parser::Split(const std::string &input){
-    
+
     std::vector<std::string> sentence;
     std::string word;
     bool quoted = false;
-    
+
     for (int i = 0; i < input.length(); i++){
-        
+
         if (input[i] == ' '){
-            
+
             if (quoted) word += " ";
             else {
-                
+
                 if ( !word.empty() )
                     sentence.push_back(word);
-                
+
                 word = "";
             }
-            
+
         }
-        
+
         else if ( input[i] == '\"' ) quoted = !quoted;
         else word += input[i];
     }
-    
+
     // get last word
     if ( !word.empty() )
         sentence.push_back(word);
-    
+
     return sentence;
 }
-    
+
 // replace all instances of `search_str` in `input_str` with `replace_str`
 void Parser::ReplaceAll(const std::string &search_str,
                 const std::string &replace_str, std::string& input_str ){
-    
+
     std::size_t pos = 0;
-    
+
     while ( ( pos = input_str.find(search_str, pos) ) != std::string::npos ){
-        
+
         input_str.replace( pos, search_str.length( ), replace_str );
         pos += replace_str.length( );
     }
@@ -745,15 +745,15 @@ std::string Parser::GetRCFile() const {
 unsigned long long Parser::GetFirstSeed() const {
 	return _first_seed;
 }
-    
+
 double Parser::GetSampleRate() const {
     return _sample_rate;
 }
-    
+
 double Parser::GetMeanBandwidth() const {
     return _mean_bandwidth;
 }
-    
+
 double Parser::GetStdevBandwidth() const {
     return _stdev_bandwidth;
 }

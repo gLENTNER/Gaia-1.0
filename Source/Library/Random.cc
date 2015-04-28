@@ -111,8 +111,8 @@ double MT19937::RandomReal() {
 // construct MT19937 family from first seed
 ParallelMT::ParallelMT(const int threads, const unsigned long long first_seed){
 
-	// set the `generator` pointer to NULL immediately
-	generator = NULL;
+	// set the `generator` pointer to nullptr immediately
+	generator = nullptr;
 
 	// save `threads` for destructor
 	_threads = threads;
@@ -162,7 +162,7 @@ ParallelMT::~ParallelMT(){
 			delete generator[i];
 
 		delete[] generator;
-		generator = NULL;
+		generator = nullptr;
 	}
 }
 

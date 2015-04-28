@@ -21,16 +21,16 @@ FileManager* FileManager::instance = nullptr;
 
 // retrieval of pointer
 FileManager* FileManager::GetInstance() {
-    
+
     if ( !instance )
         instance = new FileManager();
-    
+
     return instance;
 }
 
 // destroy the singleton
 void FileManager::Release( ) {
-    
+
     if ( instance ) {
         delete instance;
         instance = nullptr;
@@ -55,26 +55,26 @@ void FileManager::SavePositions(const std::vector<Vector> &positions,
     std::stringstream buffer;
     buffer << pos_path << trial << ".dat";
     std::string filename = buffer.str();
-    
+
     // open file and write positions
     std::ofstream output( filename.c_str() );
-    
+
     if (output) {
-        
+
         output.precision(16);
-        
+
         if (verbose) std::cout
             << "\n\n Saving position vectors to `"
             << filename << "` ... ";
             std::cout.flush();
-        
+
         for ( const auto& vec : positions )
             output << vec << std::endl;
-        
+
         if (verbose)
             std::cout << "done\n";
             std::cout.flush();
-        
+
     } else throw IOError("From FileManager::SavePositions(), I "
     "couldn't open the file `" + filename + "`!");
 }
@@ -86,14 +86,14 @@ void FileManager::SaveRaw(const std::vector<double> &seperations,
     std::stringstream buffer;
     buffer << raw_path << trial << ".dat";
     std::string filename = buffer.str();
-    
+
     // open file and write positions
     std::ofstream output( filename.c_str() );
-    
+
     if (output) {
-        
+
         output.precision(16);
-        
+
         if (verbose) std::cout
             << "\n\n Saving raw nearest neighbor distances to `"
             << filename << "` ... ";
@@ -101,11 +101,11 @@ void FileManager::SaveRaw(const std::vector<double> &seperations,
 
         for ( const auto& sep : seperations )
             output << sep << std::endl;
-        
+
         if (verbose)
             std::cout << "done\n";
             std::cout.flush();
-        
+
     } else throw IOError("From FileManager::SaveRaw(), I "
     "couldn't open the file `" + filename + "`!");
 }
@@ -113,69 +113,34 @@ void FileManager::SaveRaw(const std::vector<double> &seperations,
 void FileManager::SaveTemp( const std::vector<double> &coord,
     const std::vector<double> &mean, const std::vector<double> &stdev,
     const std::size_t trial){
-    
+
     // build file name
     std::stringstream buffer;
     buffer << tmp_path << trial << ".dat";
     std::string filename = buffer.str();
-    
+
     // open file and write positions
     std::ofstream output( filename.c_str() );
-    
+
     if (output) {
-        
+
         output.precision(16);
-        
+
         if (verbose) std::cout
             << "\n\n Saving Profile data to `"
             << filename << "` ... ";
             std::cout.flush();
-        
+
         for (std::size_t i = 0; i < coord.size(); i++)
             output << coord[i] << " " << mean[i] << " "
                    << stdev[i] << std::endl;
-        
+
         if (verbose)
             std::cout << "done\n";
             std::cout.flush();
-        
+
     } else throw IOError("From FileManager::SaveTemp(), I "
         "couldn't open the file `" + filename + "`!");
 }
 
 } // namespace Gaia
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
