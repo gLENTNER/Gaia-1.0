@@ -10,11 +10,12 @@
 
 #include <string>
 #include <vector>
-#include <exception>
 #include <cmath>
 
+#include <Exception.hh>
+
 namespace Gaia {
-    
+
 template<class T>
 class KernelFit1D {
 
@@ -28,13 +29,18 @@ public:
 	T Kernel(const T &x){return exp( -0.5 * x * x / _b );}
 
 	// solve for smooth curve through data
-	std::vector<T> Solve(const std::vector<T> &x);
+	std::vector<T> Solve(const std::vector<T> &x, const bool unbiased = false);
 
 	// solve by alternative kernel function
-	std::vector<T> Solve(const std::vector<T> &x, T (*W)(T));
+	std::vector<T> Solve(const std::vector<T> &x, T (*W)(T),
+        const bool unbiased = false);
 
 	// solve for estimated deviations
- 	std::vector<T> StdDev(const std::vector<T> &x);
+    std::vector<T> StdDev(const std::vector<T> &x, const bool unbiased = false);
+
+    // solve for estimated deviations by alternative kernel function
+    std::vector<T> StdDev(const std::vector<T> &x, T (*W)(T),
+        const bool unbiased = false);
 
 	// set with function to ensure it is squared
 	void SetBandwidth(T bandwidth){ _b = bandwidth*bandwidth; }
@@ -43,6 +49,7 @@ protected:
 
 	T _b;
     std::vector<T> _x, _y;
+    std::size_t N;
 };
 
 template<class T>
@@ -59,15 +66,20 @@ public:
 
 	// solve for the smooth surface through the data
 	std::vector< std::vector<T> > Solve(const std::vector<T> &x,
-		const std::vector<T> &y);
+		const std::vector<T> &y, const bool unbiased = false);
 
     // solve by alternative kernel function
     std::vector< std::vector<T> > Solve(const std::vector<T> &x,
-        const std::vector<T> &y, T (*W)(T, T));
+        const std::vector<T> &y, T (*W)(T, T), const bool unbiased = false);
 
     // solve for estimated deviations
     std::vector< std::vector<T> > StdDev(const std::vector<T> &x,
-    	const std::vector<T> &y);
+    	const std::vector<T> &y, const bool unbiased = false);
+
+    // solve for estimated deviations
+    std::vector< std::vector<T> > StdDev(const std::vector<T> &x,
+        const std::vector<T> &y, T (*W)(T, T), const bool unbiased = false);
+
 
 	// set with function to ensure it is squared
 	void SetBandwidth(T bandwidth){ _b = bandwidth*bandwidth; }
@@ -76,28 +88,15 @@ protected:
 
 	T _b;
 	std::vector<T> _x, _y, _z;
+    std::size_t N;
 
-};
-
-// base exception class for KernelFit objects
-class KernelException : public std::exception {
-
-public:
-
-	explicit KernelException(const std::string& msg): _msg(msg){ }
-	virtual ~KernelException() throw() { }
-	virtual const char* what() const throw(){ return _msg.c_str(); }
-
-protected:
-
-	std::string _msg;
 };
 
 // exception thrown by KernelFit objects
-class KernelFitError : public KernelException {
+class KernelFitError : public Exception {
 public:
 
-	KernelFitError(const std::string& msg): KernelException(
+	KernelFitError(const std::string& msg): Exception(
 		"\n --> KernelFitError: " + msg){ }
 };
 

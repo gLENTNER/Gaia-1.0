@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <omp.h>
 
-#include "KernelFit.hh"
+#include <KernelFit.hh>
 
 namespace Gaia {
 
@@ -36,11 +36,13 @@ KernelFit1D<T>::KernelFit1D(const std::vector<T> &x, const std::vector<T> &y,
 	_x = x;
 	_y = y;
 	_b = bandwidth * bandwidth; // squared ahead of time
+	N  = x.size(); // they're all the same length...
 
 }
 
 template<class T>
-std::vector<T> KernelFit1D<T>::Solve(const std::vector<T> &x){
+std::vector<T> KernelFit1D<T>::Solve(const std::vector<T> &x,
+	const bool unbiased){
 
 	//
 	// solve for the smooth profile through the data at all `x`
@@ -58,21 +60,28 @@ std::vector<T> KernelFit1D<T>::Solve(const std::vector<T> &x){
 
 		T sum = 0.0;
 
-		for (std::size_t j = 0; j < _x.size(); j++){
+		for (std::size_t j = 0; j < N; j++){
 
 			T W   = Kernel(_x[j] - x[i]);
 			f[i] += W * _y[j];
 			sum  += W;
 		}
 
-		f[i] /= sum;
+		if (unbiased){
+
+			// adjust the sum over weights to `unbias` the result
+			// only relavent when called from Stdev()!!!
+			f[i] /= (1.0 - 1.0 / N) * sum;
+
+		} else f[i] /= sum;
 	}
 
 	return f;
 }
 
 template<class T>
-std::vector<T> KernelFit1D<T>::Solve(const std::vector<T> &x, T (*W)(T)){
+std::vector<T> KernelFit1D<T>::Solve(const std::vector<T> &x, T (*W)(T),
+	const bool unbiased){
 
     //
     // solve for the smooth profile through the data at all `x`
@@ -91,21 +100,28 @@ std::vector<T> KernelFit1D<T>::Solve(const std::vector<T> &x, T (*W)(T)){
 
         T sum = 0.0;
 
-        for (std::size_t j = 0; j < _x.size(); j++){
+        for (std::size_t j = 0; j < N; j++){
 
             T WW  = W(_x[j] - x[i]);
             f[i] += WW * _y[j];
             sum  += WW;
         }
 
-        f[i] /= sum;
+		if (unbiased){
+
+			// adjust the sum over weights to `unbias` the result
+			// only relavent when called from Stdev()!!!
+			f[i] /= (1.0 - 1.0 / N) * sum;
+
+		} else f[i] /= sum;
     }
 
     return f;
 }
 
 template<class T>
-std::vector<T> KernelFit1D<T>::StdDev(const std::vector<T> &x){
+std::vector<T> KernelFit1D<T>::StdDev(const std::vector<T> &x,
+	const bool unbiased){
 
 	//
     // Solve for the estimated standard deviation by evaluating
@@ -113,7 +129,7 @@ std::vector<T> KernelFit1D<T>::StdDev(const std::vector<T> &x){
     //
 
     if ( x.empty() )
-        throw KernelFitError("From KernelFit1D::StdDiv(), the input vector "
+        throw KernelFitError("From KernelFit1D::StdDev(), the input vector "
         "cannot be empty!");
 
     // solve profile at data points
@@ -122,15 +138,48 @@ std::vector<T> KernelFit1D<T>::StdDev(const std::vector<T> &x){
     // solve variance at data points
     std::vector<T> var(_x.size(), 0.0);
     for (std::size_t i = 0; i < _x.size(); i++)
-        var[i] = pow(_y[i] - f[i], 2.0);
+        var[i] = std::pow(_y[i] - f[i], 2.0);
 
     // solve for smooth curve through variance points
     KernelFit1D<T> profile(_x, var, _b);
-    std::vector<T> stdev = profile.Solve(x);
+    std::vector<T> stdev = profile.Solve(x, unbiased);
 
     // take sqrt for standard deviation
     for (std::size_t i = 0; i < x.size(); i++)
         stdev[i] = sqrt(stdev[i]);
+
+    return stdev;
+}
+
+template<class T>
+std::vector<T> KernelFit1D<T>::StdDev(const std::vector<T> &x,
+	T (*W)(T), const bool unbiased){
+
+	//
+    // Solve for the estimated standard deviation by evaluating
+    // the profile *at* the raw data points. In this version,
+    // I use an alternative kernel function given by the user.
+	//
+
+    if ( x.empty() )
+        throw KernelFitError("From KernelFit1D::StdDev(), the input vector "
+        "cannot be empty!");
+
+    // solve profile at data points
+    std::vector<T> f = Solve( _x, W );
+
+    // solve variance at data points
+    std::vector<T> var(_x.size(), 0.0);
+    for (std::size_t i = 0; i < _x.size(); i++)
+        var[i] = std::pow(_y[i] - f[i], 2.0);
+
+    // solve for smooth curve through variance points
+    KernelFit1D<T> profile(_x, var, _b);
+    std::vector<T> stdev = profile.Solve(x, W, unbiased);
+
+    // take sqrt for standard deviation
+    for (std::size_t i = 0; i < x.size(); i++)
+        stdev[i] = std::sqrt(stdev[i]);
 
     return stdev;
 }
@@ -158,12 +207,13 @@ KernelFit2D<T>::KernelFit2D(const std::vector<T> &x, const std::vector<T> &y,
 	_y = y;
 	_z = z;
 	_b = bandwidth * bandwidth; // square
+	N  = x.size(); // they're all the same length...
 
 }
 
 template<class T>
 std::vector< std::vector<T> > KernelFit2D<T>::Solve(const std::vector<T> &x,
-	const std::vector<T> &y){
+	const std::vector<T> &y, const bool unbiased){
 
 	//
 	// solve for the smooth surface through the data at all (x, y)
@@ -183,14 +233,20 @@ std::vector< std::vector<T> > KernelFit2D<T>::Solve(const std::vector<T> &x,
 
 		T sum = 0.0;
 
-		for (std::size_t k = 0; k < _x.size(); k++){
+		for (std::size_t k = 0; k < N; k++){
 
 			T W      = Kernel(x[i] - _x[k], y[j] - _y[k]);
 			f[i][j] += W * _z[k];
 			sum     += W;
 		}
 
-		f[i][j] /= sum;
+		if (unbiased){
+
+			// adjust the sum over weights to `unbias` the result
+			// only relavent when called from Stdev()!!!
+			f[i][j] /= (1.0 - 1.0 / N) * sum;
+
+		} else f[i][j] /= sum;
 	}
 
 	return f;
@@ -198,10 +254,10 @@ std::vector< std::vector<T> > KernelFit2D<T>::Solve(const std::vector<T> &x,
 
 template<class T>
 std::vector< std::vector<T> > KernelFit2D<T>::Solve(const std::vector<T> &x,
-    const std::vector<T> &y, T (*W)(T, T)){
+    const std::vector<T> &y, T (*W)(T, T), const bool unbiased){
 
     //
-    // solve for the smooth surface throught the xy data using alternative
+    // solve for the smooth surface through the x,y data using alternative
     // kernel function `W`.
     //
 
@@ -219,14 +275,20 @@ std::vector< std::vector<T> > KernelFit2D<T>::Solve(const std::vector<T> &x,
 
         T sum = 0.0;
 
-        for (std::size_t k = 0; k < _x.size(); k++){
+        for (std::size_t k = 0; k < N; k++){
 
             T WW     = W(x[i] - _x[k], y[j] - _y[k]);
             f[i][j] += WW * _z[k];
             sum     += WW;
         }
 
-        f[i][j] /= sum;
+		if (unbiased){
+
+			// adjust the sum over weights to `unbias` the result
+			// only relavent when called from Stdev()!!!
+			f[i][j] /= (1.0 - 1.0 / N) * sum;
+
+		} else f[i][j] /= sum;
     }
 
     return f;
@@ -234,7 +296,7 @@ std::vector< std::vector<T> > KernelFit2D<T>::Solve(const std::vector<T> &x,
 
 template<class T>
 std::vector< std::vector<T> > KernelFit2D<T>::StdDev(const std::vector<T> &x,
-	const std::vector<T> &y){
+	const std::vector<T> &y, const bool unbiased){
 
 	//
 	// Solve for the estimated standard deviation by evaluating
@@ -246,15 +308,15 @@ std::vector< std::vector<T> > KernelFit2D<T>::StdDev(const std::vector<T> &x,
 	    "input vectors were empty!");
 
 	// initialize vector for profile at data points
-	std::vector<T> f(_x.size(), 0.0);
+	std::vector<T> f(N, 0.0);
 
 	// solve profile at data points
 	#pragma omp parallel for shared(f)
-	for (std::size_t i = 0; i < _x.size(); i++){
+	for (std::size_t i = 0; i < N; i++){
 
 	    T sum = 0.0;
 
-	    for (std::size_t j = 0; j < _x.size(); j++){
+	    for (std::size_t j = 0; j < N; j++){
 
 	        T W   = Kernel(_x[i] - _x[j], _y[i] - _y[j]);
 	        f[i] += W * _z[j];
@@ -265,19 +327,70 @@ std::vector< std::vector<T> > KernelFit2D<T>::StdDev(const std::vector<T> &x,
 	}
 
 	// solve for variances at data points
-	std::vector<T> var(_x.size(), 0.0);
-	for (std::size_t i = 0; i < _x.size(); i++)
-		var[i] = pow(_z[i] - f[i], 2.0);
+	std::vector<T> var(N, 0.0);
+	for (std::size_t i = 0; i < N; i++)
+		var[i] = std::pow(_z[i] - f[i], 2.0);
 
 	// solve for smooth surface through variance points
 	KernelFit2D<T> profile(_x, _y, var, _b);
-	std::vector< std::vector<T> > stdev = profile.Solve(x, y);
+	std::vector< std::vector<T> > stdev = profile.Solve(x, y, unbiased);
 
 	// take sqrt for standard deviation
 	#pragma omp parallel for shared(stdev)
 	for (std::size_t i = 0; i < x.size(); i++)
 	for (std::size_t j = 0; j < y.size(); j++)
-		stdev[i][j] = sqrt(stdev[i][j]);
+		stdev[i][j] = std::sqrt(stdev[i][j]);
+
+	return stdev;
+}
+
+template<class T>
+std::vector< std::vector<T> > KernelFit2D<T>::StdDev(const std::vector<T> &x,
+	const std::vector<T> &y, T (*W)(T, T), const bool unbiased){
+
+	//
+	// Solve for the estimated standard deviation by evaluating
+	// the profile *at* the raw data points. This version accepts an
+	// alternative kernel function provided by the user.
+	//
+
+	if ( x.empty() || y.empty() )
+		throw KernelFitError("From KernelFit2D::StdDev(), one or both of the "
+	    "input vectors were empty!");
+
+	// initialize vector for profile at data points
+	std::vector<T> f(N, 0.0);
+
+	// solve profile at data points
+	#pragma omp parallel for shared(f)
+	for (std::size_t i = 0; i < N; i++){
+
+	    T sum = 0.0;
+
+	    for (std::size_t j = 0; j < N; j++){
+
+	        T WW  = W(_x[i] - _x[j], _y[i] - _y[j]);
+	        f[i] += WW * _z[j];
+	        sum  += WW;
+	    }
+
+	    f[i] /= sum;
+	}
+
+	// solve for variances at data points
+	std::vector<T> var(_x.size(), 0.0);
+	for (std::size_t i = 0; i < _x.size(); i++)
+		var[i] = std::pow(_z[i] - f[i], 2.0);
+
+	// solve for smooth surface through variance points
+	KernelFit2D<T> profile(_x, _y, var, _b);
+	std::vector< std::vector<T> > stdev = profile.Solve(x, y, unbiased);
+
+	// take sqrt for standard deviation
+	#pragma omp parallel for shared(stdev)
+	for (std::size_t i = 0; i < x.size(); i++)
+	for (std::size_t j = 0; j < y.size(); j++)
+		stdev[i][j] = std::sqrt(stdev[i][j]);
 
 	return stdev;
 }

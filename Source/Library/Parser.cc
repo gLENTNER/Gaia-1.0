@@ -42,7 +42,7 @@ void Parser::Release( ) {
 
 	if ( instance ) {
 		delete instance;
-		instance = NULL;
+		instance = nullptr;
 	}
 }
 

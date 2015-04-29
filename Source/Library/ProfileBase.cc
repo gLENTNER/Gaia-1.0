@@ -22,7 +22,7 @@ namespace Gaia {
 ProfileBase::ProfileBase(const std::string &name,
 	const std::string &axis1, const std::string &axis2){
 
-	// set pointers to NULL immediately
+	// set pointers to nullptr immediately
 	Linear_Data   = nullptr;
 	BiLinear_Data = nullptr;
 
@@ -58,12 +58,12 @@ ProfileBase::~ProfileBase(){
 
 	if (Linear_Data){
 		delete Linear_Data;
-		Linear_Data = NULL;
+		Linear_Data = nullptr;
 	}
 
 	if (BiLinear_Data){
 		delete BiLinear_Data;
-		BiLinear_Data = NULL;
+		BiLinear_Data = nullptr;
 	}
 }
 
