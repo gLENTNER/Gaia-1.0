@@ -35,15 +35,16 @@ Simulation::Simulation(const int argc, const char *argv[]){
     if ( parser -> GetVerbosity() ) std::cout
         << "\n Welcome to GAIA | version 1.0.1"
         << "\n Copyright (c) Geoffrey Lentner 2015 (GPLv3)\n"
-        << "\n";
-
-	// create and initialize the population manager
-    population = new PopulationManager();
-    population -> Initialize();
+		<< "\n Interpreting runtime configuration ...\n";
+		std::cout.flush();
 
 	// // create and initialize the file manager
     file = FileManager::GetInstance();
     file -> Initialize();
+
+	// create and initialize the population manager
+    population = new PopulationManager();
+    population -> Initialize();
 
     if ( parser -> GetDebuggerFlag() )
         Debug();
@@ -91,7 +92,7 @@ void Simulation::Run(){
         population -> Build(t);
 
         if (analysis){
-//
+
             // find the nearest neighbor seperations
             population -> FindNeighbors(t);
 
@@ -105,8 +106,8 @@ void Simulation::Run(){
         display -> Progress(trials, trials);
 
     // combine statistics for nearest neighbor analysis
-//    if (analysis)
-//        population -> Analysis();
+	if (analysis)
+		population -> Analysis();
 
 	if (verbose)
 		display -> TotalElapsedTime();
@@ -177,7 +178,6 @@ void Simulation::Debug(){
     "\n Analysis               = " << analysis_string <<
     "\n Output file pattern    = " << parser -> GetOutPath() << "*.dat" <<
     "\n Raw file pattern       = " << parser -> GetRawPath() << "*.dat" <<
-    "\n Temporary file pattern = " << parser -> GetTmpPath() << "*.dat" <<
     "\n Position file pattern  = " << parser -> GetPosPath() << "*.dat" <<
     "\n RC file used           = " << parser -> GetRCFile() <<
     "\n" <<

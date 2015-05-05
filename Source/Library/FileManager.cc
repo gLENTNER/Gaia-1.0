@@ -45,7 +45,7 @@ void FileManager::Initialize(){
     pos_path = parser -> GetPosPath();
     raw_path = parser -> GetRawPath();
     out_path = parser -> GetOutPath();
-    tmp_path = parser -> GetTmpPath();
+    map_path = parser -> GetMapPath();
 }
 
 void FileManager::SavePositions(const std::vector<Vector> &positions,
@@ -110,14 +110,64 @@ void FileManager::SaveRaw(const std::vector<double> &seperations,
     "couldn't open the file `" + filename + "`!");
 }
 
-void FileManager::SaveTemp( const std::vector<double> &coord,
-    const std::vector<double> &mean, const std::vector<double> &stdev,
-    const std::size_t trial){
+void FileManager::SaveMap( const std::map<std::string, std::vector<double>> Axis ){
+
+    //
+    // Save the axis information the results were mapped to.
+    //
+
+    for ( const auto& ax : Axis ){
+
+        // build file name
+        std::stringstream buffer;
+        buffer << map_path << ax.first << ".dat";
+        std::string filename = buffer.str();
+
+        if (verbose) std::cout
+            << "\n Saving analysis coordinate map data to `"
+            << filename << "` ... ";
+            std::cout.flush();
+
+        // open file and write out `map` coordinates
+        std::ofstream output( filename.c_str() );
+
+        if (output) {
+
+            output.precision(16);
+
+            for ( const auto& x : ax.second )
+                output << x << std::endl;
+
+        } else throw IOError("From FileManager::SaveMap(), I couldn't open "
+        "the file, `" + filename + "`!");
+
+        if (verbose)
+            std::cout<< "done\n";
+            std::cout.flush();
+    }
+}
+
+void FileManager::SaveOutput(const std::vector<double> &mean,
+    const std::vector<double> &variance, const std::size_t trial){
+
+    //
+    // Save mean and standard deviation to file
+    //
 
     // build file name
     std::stringstream buffer;
-    buffer << tmp_path << trial << ".dat";
+    buffer << out_path << trial << ".dat";
     std::string filename = buffer.str();
+
+    if (verbose) std::cout
+        << "\n\n Saving Profile data to `"
+        << filename << "` ... ";
+        std::cout.flush();
+
+    // take the sqrt of variance for the standard deviation
+    std::vector<double> stdev(variance.size(), 0.0);
+    for (std::size_t i = 0; i < stdev.size(); i++)
+        stdev[i] = std::sqrt(variance[i]);
 
     // open file and write positions
     std::ofstream output( filename.c_str() );
@@ -126,21 +176,70 @@ void FileManager::SaveTemp( const std::vector<double> &coord,
 
         output.precision(16);
 
+        for (std::size_t i = 0; i < mean.size(); i++)
+            output << mean[i] << " " << stdev[i] << std::endl;
+
+    } else throw IOError("From FileManager::SaveOutput(), I "
+        "couldn't open the file, `" + filename + "`!");
+
+    if (verbose)
+        std::cout << "done\n";
+        std::cout.flush();
+}
+
+void FileManager::SaveOutput( const std::vector< std::vector<double> > &mean,
+    const std::vector< std::vector<double> > &variance, const std::size_t trial){
+
+    //
+    // Save mean and standard deviation to file, 2D
+    //
+
+    // take the sqrt of variance for the standard deviation
+	std::vector< std::vector<double> > stdev = variance;
+    for ( auto& row : stdev )
+    for ( auto& element : row )
+        element = std::sqrt(element);
+
+    // create map to shorten notation ...
+    std::map< std::string, std::vector< std::vector<double> > > results;
+    results["mean"]  = mean;
+    results["stdev"] = stdev;
+
+    // counting variable updates filename
+    for( const auto& matrix : results ){
+
+        // build file name
+        std::stringstream buffer;
+        buffer << out_path << trial << "-" << matrix.first << ".dat";
+        std::string filename = buffer.str();
+
         if (verbose) std::cout
-            << "\n\n Saving Profile data to `"
+            << "\n\n Saving `" << matrix.first << "` data to file, `"
             << filename << "` ... ";
             std::cout.flush();
 
-        for (std::size_t i = 0; i < coord.size(); i++)
-            output << coord[i] << " " << mean[i] << " "
-                   << stdev[i] << std::endl;
+        // open file and write positions
+        std::ofstream output( filename.c_str() );
+
+        if (output) {
+
+            output.precision(16);
+
+            for ( const auto& row : matrix.second ){
+
+                for ( const auto& element : row )
+                    output << element << " ";
+
+                output << std::endl;
+            }
+
+        } else throw IOError("From FileManager::SaveOutput(), I "
+            "couldn't open the file, `" + filename + "`!");
 
         if (verbose)
-            std::cout << "done\n";
+            std::cout << "done";
             std::cout.flush();
-
-    } else throw IOError("From FileManager::SaveTemp(), I "
-        "couldn't open the file `" + filename + "`!");
+    }
 }
 
 } // namespace Gaia

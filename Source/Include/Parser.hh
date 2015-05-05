@@ -43,8 +43,8 @@ public:
     std::vector<std::string> GetAxes() const;
 	std::string GetOutPath() const;
 	std::string GetRawPath() const;
-	std::string GetTmpPath() const;
 	std::string GetPosPath() const;
+	std::string GetMapPath() const;
 	std::string GetRCFile() const;
 	unsigned long long GetFirstSeed() const;
     double GetSampleRate() const;
@@ -72,9 +72,7 @@ private:
 	// helper functions
 	void SetLimits(const std::string&, const std::string&, const std::string&);
     void SetAnalysis(const std::vector<std::string>& );
-//	void SetXY(const std::string&, const std::string&);
-//	void SetRadial(const std::string&, const std::string&);
-    
+
     void Clip(std::string &input_string, const std::string &delim);
     std::vector<std::string> Split(const std::string &input);
     void ReplaceAll(const std::string &search_str,
@@ -92,7 +90,7 @@ private:
 	int _verbose, _num_threads, _num_trials, _line_number;
 	bool _keep_raw, _keep_pos, _no_analysis, _debug_mode;
     std::size_t _num_particles;
-	std::string _out_path, _raw_path, _tmp_path, _pos_path, _rc_file;
+	std::string _out_path, _raw_path, _pos_path, _map_path, _rc_file;
 	unsigned long long _first_seed;
     double _sample_rate, _mean_bandwidth, _stdev_bandwidth;
 
@@ -103,7 +101,7 @@ private:
 	std::vector<double> _x_limits, _y_limits, _z_limits;
     std::vector<std::size_t> _resolution;
     std::vector<std::string> _axes;
-    
+
 	bool _given_xlims, _given_ylims, _given_zlims, _given_analysis;
 
 	// map of profile names from RC-file with file paths

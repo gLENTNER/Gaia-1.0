@@ -52,9 +52,9 @@ void Parser::Setup(const int argc, const char *argv[]){
 	// display usage
 	if ( argc == 1 ) throw Usage(
     "Gaia [--num-particles=] [--num-trials=] [--num-threads=] [--set-verbose=0|1|2|3]\n\t"
-    "[--out-path=] [--raw-path=] [--tmp-path=] [--pos-path=] [--first-seed=]\n\t"
+    "[--out-path=] [--raw-path=] [--map-path=] [--pos-path=] [--first-seed=]\n\t"
     "[--sample-rate=] [--mean-bandwidth=] [--stdev-bandwidth=] [--rc-file=]\n\t"
-    "[--no-analysis] [--keep-raw] [--keep-pos] [--debug]\n\n\t"
+    "[--no-analysis] [--keep-pos] [--keep-raw] [--debug]\n\n\t"
     "An application for building 3D numerical models of systems of particles\n\t"
     "using a Monte Carlo rejection chain algorithm based on probability density\n\t"
     "functions (PDFs) defined by the user. A nearest neighbor analysis is \n\t"
@@ -89,8 +89,8 @@ void Parser::SetDefaults(){
 	argument["--set-verbose"    ] = "2";
 	argument["--out-path"       ] = "Gaia-out-";
 	argument["--raw-path"       ] = "Gaia-raw-";
-	argument["--tmp-path"       ] = "Gaia-tmp-";
 	argument["--pos-path"       ] = "Gaia-pos-";
+	argument["--map-path"       ] = "Gaia-map-";
 	argument["--no-analysis"    ] = "0";
 	argument["--keep-raw"       ] = "0";
 	argument["--keep-pos"       ] = "0";
@@ -121,15 +121,6 @@ void Parser::ReadRC(){
     for ( const auto& arg : _cmd_args )
         if (arg.find("--rc-file") != std::string::npos)
             _rc_file = arg.substr(arg.find("=") + 1, arg.length());
-
-//	for ( std::vector<std::string>::iterator iter = _cmd_args.begin();
-//		iter != _cmd_args.end(); iter++ ){
-//
-//		std::string arg( *iter );
-//
-//		if ( arg.find("--rc-file=") != std::string::npos )
-//			_rc_file = arg.substr(arg.find("=") + 1, arg.length());
-//	}
 
 	// replace `~` with `$HOME`
 	ReplaceAll("~", std::string(getenv("HOME")), _rc_file);
@@ -245,14 +236,14 @@ void Parser::Rectify(){
 	// set `string` arguments
 	_out_path = argument["--out-path"];
 	_raw_path = argument["--raw-path"];
-	_tmp_path = argument["--tmp-path"];
+	_map_path = argument["--map-path"];
 	_pos_path = argument["--pos-path"];
 	_rc_file  = argument["--rc-file" ];
 
 	// replace `~` with `$HOME`
 	ReplaceAll("~", std::string(getenv("HOME")), _out_path);
 	ReplaceAll("~", std::string(getenv("HOME")), _raw_path);
-	ReplaceAll("~", std::string(getenv("HOME")), _tmp_path);
+	ReplaceAll("~", std::string(getenv("HOME")), _map_path);
 	ReplaceAll("~", std::string(getenv("HOME")), _pos_path);
 	ReplaceAll("~", std::string(getenv("HOME")), _rc_file );
 
@@ -730,8 +721,8 @@ std::string Parser::GetRawPath() const {
 	return _raw_path;
 }
 
-std::string Parser::GetTmpPath() const {
-	return _tmp_path;
+std::string Parser::GetMapPath() const {
+	return _map_path;
 }
 
 std::string Parser::GetPosPath() const {

@@ -66,6 +66,7 @@ void PopulationManager::Initialize(){
 	N          = parser -> GetNumParticles();
 	first_seed = parser -> GetFirstSeed();
 	threads    = parser -> GetNumThreads();
+	trials     = parser -> GetNumTrials();
     verbose    = parser -> GetVerbosity();
     analysis   = parser -> GetAnalysisFlag();
     samples    = parser -> GetSampleRate() * double(N);
@@ -140,6 +141,22 @@ void PopulationManager::Initialize(){
         );
     }
 
+	// save map information to file
+	file -> SaveMap( Axis );
+
+	// initialize 1D pooled statistics vectors
+	std::vector<double> init_1D(resolution[0], 0.0);
+
+	pooled_mean_1D = init_1D;
+	pooled_variance_1D = init_1D;
+
+	// initialize 2D pooled statistics vectors
+	std::vector< std::vector<double> > init_2D(resolution[0],
+		std::vector<double>(resolution[1], 0.0));
+
+	pooled_mean_2D = init_2D;
+	pooled_variance_2D = init_2D;
+
     // build coordinate function map for transposing `positions`
     Coord["X"] = X;
     Coord["Y"] = Y;
@@ -148,7 +165,6 @@ void PopulationManager::Initialize(){
     Coord["Rho"] = Rho;
     Coord["Phi"] = Phi;
     Coord["Theta"] = Theta;
-
 }
 
 // build a new population set
@@ -255,7 +271,7 @@ void PopulationManager::ProfileFit(const int trial){
             coords[i] = Coord[ axis[0] ]( positions[i] );
 
         if (verbose) std::cout
-            << "done\n Solving 1D KernelFit ... ";
+            << "done\n Solving profile with KernelFit1D ... \n";
             std::cout.flush();
 
         // initialize the KernelFit object
@@ -267,22 +283,77 @@ void PopulationManager::ProfileFit(const int trial){
         // set new bandwidth
         kernel.SetBandwidth(stdev_bandwidth);
 
-        if (verbose) std::cout
-            << "done\n Solving for standard deviations ... ";
+        if (verbose)
+			std::cout << "\n Solving for sample variances ... \n";
             std::cout.flush();
 
         // solve for the standard deviation of the fit
-        std::vector<double> stdev = kernel.StdDev( Axis[ axis[0] ] );
+        std::vector<double> variance = kernel.Variance(Axis[ axis[0] ], true);
 
-        if (verbose) std::cout
-            << "done\n";
-            std::cout.flush();
+		// add results to cummulative results
+		for ( std::size_t i = 0; i < resolution[0]; i++ ){
+
+			pooled_mean_1D[i]     += mean[i];
+			pooled_variance_1D[i] += variance[i];
+		}
 
         // save the results to a file
-        file -> SaveTemp(Axis[ axis[0] ], mean, stdev, trial + 1);
+        file -> SaveOutput(mean, variance, trial + 1);
 
-//    } else if ( Axis.size() == 2 ) {
+    } else if ( Axis.size() == 2 ) {
 
+		if (verbose) std::cout
+			<< "\n Transposing vectors ... ";
+			std::cout.flush();
+
+		// build vector of coordinates (chosen at runtime)
+		std::vector<double> coords_1(samples, 0.0);
+		std::vector<double> coords_2(samples, 0.0);
+		for ( std::size_t i = 0; i < samples; i++ ){
+
+			coords_1[i] = Coord[ axis[0] ]( positions[i] );
+			coords_2[i] = Coord[ axis[1] ]( positions[i] );
+		}
+
+		if (verbose) std::cout
+			<< "done\n Solving profile with KernelFit2D ... \n";
+			std::cout.flush();
+
+		// initialize the KernelFit object
+		KernelFit2D<double> kernel(coords_1, coords_2, seperations,
+			mean_bandwidth);
+
+		// solve for the profile through the data
+		std::vector< std::vector<double> > mean = kernel.Solve(Axis[ axis[0] ],
+			Axis[ axis[1] ] );
+
+		// set new bandwidth
+		kernel.SetBandwidth(stdev_bandwidth);
+
+		if (verbose < 3)
+			std::cout << "done";
+
+		if (verbose)
+			std::cout << "\n Solving for sample variances ... ";
+			std::cout.flush();
+
+		// solve for the variance of the fit
+		std::vector< std::vector<double> > variance = kernel.Variance(
+			Axis[ axis[0] ], Axis[ axis[1] ], true);
+
+		if (verbose < 3)
+			std::cout << "done";
+
+		// add results to cummulative results
+		for ( std::size_t i = 0; i < resolution[0]; i++ )
+		for ( std::size_t j = 0; j < resolution[1]; j++ ){
+
+			pooled_mean_2D[i][j]     += mean[i][j];
+			pooled_variance_2D[i][j] += variance[i][j];
+		}
+
+		// save the results to a file
+		file -> SaveOutput(mean, variance, trial + 1);
 
     } else throw Exception("\n Error: From PopulationManager::ProfileFit, "
         "something is wrong. Axis.size() > 2");
@@ -291,6 +362,42 @@ void PopulationManager::ProfileFit(const int trial){
 // combine statistics for all trials
 void PopulationManager::Analysis(){
 
+	// take the mean of the pooled statistics and output results
+
+	if (verbose)
+		std::cout << "\n Pooling statistics ... ";
+		std::cout.flush();
+
+	// switch for 1D or 2D analysis, build KernelFit objects
+	if ( Axis.size() == 1 ){
+
+		for (auto &x : pooled_mean_1D)
+			x /= trials;
+
+		for (auto &x : pooled_variance_1D)
+			x /= trials;
+
+		if (verbose)
+			std::cout << "done";
+
+		file -> SaveOutput(pooled_mean_1D, pooled_variance_1D, 0);
+
+    } else if ( Axis.size() == 2 ) {
+
+		for (std::size_t i = 0; i < resolution[0]; i++)
+		for (std::size_t j = 0; j < resolution[1]; j++){
+
+			pooled_mean_2D[i][j]     /= trials;
+			pooled_variance_2D[i][j] /= trials;
+		}
+
+		if (verbose)
+			std::cout << "done";
+
+		file -> SaveOutput(pooled_mean_2D, pooled_variance_2D, 0);
+
+	} else throw Exception("\n Error: From PopulationManager::Analysis, "
+        "something is wrong. Axis.size() > 2");
 }
 
 std::vector<Interval> Interval::Build(const std::vector<Vector> &input,

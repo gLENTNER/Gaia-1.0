@@ -11,6 +11,8 @@
 #include <omp.h>
 
 #include <KernelFit.hh>
+#include <Parser.hh>
+#include <Monitor.hh>
 
 namespace Gaia {
 
@@ -38,6 +40,11 @@ KernelFit1D<T>::KernelFit1D(const std::vector<T> &x, const std::vector<T> &y,
 	_b = bandwidth * bandwidth; // squared ahead of time
 	N  = x.size(); // they're all the same length...
 
+	// include display monitor for Gaia project
+	parser = Parser::GetInstance();
+	verbose = parser -> GetVerbosity();
+	display = Monitor::GetInstance();
+
 }
 
 template<class T>
@@ -58,6 +65,9 @@ std::vector<T> KernelFit1D<T>::Solve(const std::vector<T> &x,
 	#pragma omp parallel for shared(f)
 	for (std::size_t i = 0; i <  x.size(); i++){
 
+		if ( verbose > 2 && !omp_get_thread_num() )
+            display -> Progress(i, x.size(), omp_get_num_threads() );
+
 		T sum = 0.0;
 
 		for (std::size_t j = 0; j < N; j++){
@@ -75,6 +85,9 @@ std::vector<T> KernelFit1D<T>::Solve(const std::vector<T> &x,
 
 		} else f[i] /= sum;
 	}
+
+	if (verbose > 2)
+		display -> Progress(1, 1); // complete
 
 	return f;
 }
@@ -98,6 +111,9 @@ std::vector<T> KernelFit1D<T>::Solve(const std::vector<T> &x, T (*W)(T),
     #pragma omp parallel for shared(f)
     for (std::size_t i = 0; i <  x.size(); i++){
 
+		if ( verbose > 2 && !omp_get_thread_num() )
+            display -> Progress(i, x.size(), omp_get_num_threads() );
+
         T sum = 0.0;
 
         for (std::size_t j = 0; j < N; j++){
@@ -116,7 +132,65 @@ std::vector<T> KernelFit1D<T>::Solve(const std::vector<T> &x, T (*W)(T),
 		} else f[i] /= sum;
     }
 
+	if (verbose > 2)
+		display -> Progress(1, 1); // complete
+
     return f;
+}
+
+template<class T>
+std::vector<T> KernelFit1D<T>::Variance(const std::vector<T> &x,
+	const bool unbiased){
+
+	//
+    // Solve for the estimated standard deviation by evaluating
+    // the profile *at* the raw data points.
+    //
+
+    if ( x.empty() )
+        throw KernelFitError("From KernelFit1D::Variance(), the input vector "
+        "cannot be empty!");
+
+    // solve profile at data points
+    std::vector<T> f = Solve( _x );
+
+    // solve variance at data points
+    std::vector<T> var(N, 0.0);
+    for (std::size_t i = 0; i < N; i++)
+        var[i] = std::pow(_y[i] - f[i], 2.0);
+
+    // solve for smooth curve through variance points
+    KernelFit1D<T> profile(_x, var, _b);
+
+    return profile.Solve(x, unbiased);
+}
+
+template<class T>
+std::vector<T> KernelFit1D<T>::Variance(const std::vector<T> &x,
+	T (*W)(T), const bool unbiased){
+
+	//
+    // Solve for the estimated variance by evaluating
+    // the profile *at* the raw data points. In this version,
+    // I use an alternative kernel function given by the user.
+	//
+
+    if ( x.empty() )
+        throw KernelFitError("From KernelFit1D::Variance(), the input vector "
+        "cannot be empty!");
+
+    // solve profile at data points
+    std::vector<T> f = Solve( _x, W );
+
+    // solve variance at data points
+    std::vector<T> var(_x.size(), 0.0);
+    for (std::size_t i = 0; i < _x.size(); i++)
+        var[i] = std::pow(_y[i] - f[i], 2.0);
+
+    // solve for smooth curve through variance points
+    KernelFit1D<T> profile(_x, var, _b);
+
+    return profile.Solve(x, W, unbiased);
 }
 
 template<class T>
@@ -128,25 +202,15 @@ std::vector<T> KernelFit1D<T>::StdDev(const std::vector<T> &x,
     // the profile *at* the raw data points.
     //
 
-    if ( x.empty() )
+	if ( x.empty() )
         throw KernelFitError("From KernelFit1D::StdDev(), the input vector "
         "cannot be empty!");
 
-    // solve profile at data points
-    std::vector<T> f = Solve( _x );
-
-    // solve variance at data points
-    std::vector<T> var(_x.size(), 0.0);
-    for (std::size_t i = 0; i < _x.size(); i++)
-        var[i] = std::pow(_y[i] - f[i], 2.0);
-
-    // solve for smooth curve through variance points
-    KernelFit1D<T> profile(_x, var, _b);
-    std::vector<T> stdev = profile.Solve(x, unbiased);
+	std::vector<T> stdev = Variance(x, unbiased);
 
     // take sqrt for standard deviation
-    for (std::size_t i = 0; i < x.size(); i++)
-        stdev[i] = sqrt(stdev[i]);
+    for ( auto& x : stdev )
+        x = std::sqrt(x);
 
     return stdev;
 }
@@ -161,25 +225,15 @@ std::vector<T> KernelFit1D<T>::StdDev(const std::vector<T> &x,
     // I use an alternative kernel function given by the user.
 	//
 
-    if ( x.empty() )
+	if ( x.empty() )
         throw KernelFitError("From KernelFit1D::StdDev(), the input vector "
         "cannot be empty!");
 
-    // solve profile at data points
-    std::vector<T> f = Solve( _x, W );
-
-    // solve variance at data points
-    std::vector<T> var(_x.size(), 0.0);
-    for (std::size_t i = 0; i < _x.size(); i++)
-        var[i] = std::pow(_y[i] - f[i], 2.0);
-
-    // solve for smooth curve through variance points
-    KernelFit1D<T> profile(_x, var, _b);
-    std::vector<T> stdev = profile.Solve(x, W, unbiased);
+	std::vector<T> stdev = Variance(x, W, unbiased);
 
     // take sqrt for standard deviation
-    for (std::size_t i = 0; i < x.size(); i++)
-        stdev[i] = std::sqrt(stdev[i]);
+    for ( auto& x : stdev )
+        x = std::sqrt(x);
 
     return stdev;
 }
@@ -209,6 +263,10 @@ KernelFit2D<T>::KernelFit2D(const std::vector<T> &x, const std::vector<T> &y,
 	_b = bandwidth * bandwidth; // square
 	N  = x.size(); // they're all the same length...
 
+	// include display monitor for Gaia project
+	parser = Parser::GetInstance();
+	verbose = parser -> GetVerbosity();
+	display = Monitor::GetInstance();
 }
 
 template<class T>
@@ -228,26 +286,34 @@ std::vector< std::vector<T> > KernelFit2D<T>::Solve(const std::vector<T> &x,
 
 	// omp_set_num_threads() should be called prior to here!
 	#pragma omp parallel for shared(f)
-	for (std::size_t i = 0; i < x.size(); i++)
-	for (std::size_t j = 0; j < y.size(); j++){
+	for (std::size_t i = 0; i < x.size(); i++){
 
-		T sum = 0.0;
+		if ( verbose > 2 && !omp_get_thread_num() )
+			display -> Progress(i, x.size(), omp_get_num_threads() );
 
-		for (std::size_t k = 0; k < N; k++){
+		for (std::size_t j = 0; j < y.size(); j++){
 
-			T W      = Kernel(x[i] - _x[k], y[j] - _y[k]);
-			f[i][j] += W * _z[k];
-			sum     += W;
+			T sum = 0.0;
+
+			for (std::size_t k = 0; k < N; k++){
+
+				T W      = Kernel(x[i] - _x[k], y[j] - _y[k]);
+				f[i][j] += W * _z[k];
+				sum     += W;
+			}
+
+			if (unbiased){
+
+				// adjust the sum over weights to `unbias` the result
+				// only relavent when called from Stdev()!!!
+				f[i][j] /= (1.0 - 1.0 / N) * sum;
+
+			} else f[i][j] /= sum;
 		}
-
-		if (unbiased){
-
-			// adjust the sum over weights to `unbias` the result
-			// only relavent when called from Stdev()!!!
-			f[i][j] /= (1.0 - 1.0 / N) * sum;
-
-		} else f[i][j] /= sum;
 	}
+
+	if (verbose > 2)
+		display -> Progress(1, 1); // complete
 
 	return f;
 }
@@ -270,28 +336,132 @@ std::vector< std::vector<T> > KernelFit2D<T>::Solve(const std::vector<T> &x,
 
     // omp_set_num_threads() should be called prior to here!
     #pragma omp parallel for shared(f)
-    for (std::size_t i = 0; i < x.size(); i++)
-    for (std::size_t j = 0; j < y.size(); j++){
+    for (std::size_t i = 0; i < x.size(); i++){
 
-        T sum = 0.0;
+		if ( verbose > 2 && !omp_get_thread_num() )
+            display -> Progress(i, x.size(), omp_get_num_threads() );
 
-        for (std::size_t k = 0; k < N; k++){
+		for (std::size_t j = 0; j < y.size(); j++){
 
-            T WW     = W(x[i] - _x[k], y[j] - _y[k]);
-            f[i][j] += WW * _z[k];
-            sum     += WW;
-        }
+	        T sum = 0.0;
 
-		if (unbiased){
+	        for (std::size_t k = 0; k < N; k++){
 
-			// adjust the sum over weights to `unbias` the result
-			// only relavent when called from Stdev()!!!
-			f[i][j] /= (1.0 - 1.0 / N) * sum;
+	            T WW     = W(x[i] - _x[k], y[j] - _y[k]);
+	            f[i][j] += WW * _z[k];
+	            sum     += WW;
+	        }
 
-		} else f[i][j] /= sum;
-    }
+			if (unbiased){
+
+				// adjust the sum over weights to `unbias` the result
+				// only relavent when called from Stdev()!!!
+				f[i][j] /= (1.0 - 1.0 / N) * sum;
+
+			} else f[i][j] /= sum;
+	    }
+	}
 
     return f;
+}
+
+template<class T>
+std::vector< std::vector<T> > KernelFit2D<T>::Variance(const std::vector<T> &x,
+	const std::vector<T> &y, const bool unbiased){
+
+	//
+	// Solve for the estimated standard deviation by evaluating
+	// the profile *at* the raw data points.
+	//
+
+	if ( x.empty() || y.empty() )
+		throw KernelFitError("From KernelFit2D::Variance(), one or both of the "
+	    "input vectors were empty!");
+
+	// initialize vector for profile at data points
+	std::vector<T> f(N, 0.0);
+
+	// solve profile at data points
+	#pragma omp parallel for shared(f)
+	for (std::size_t i = 0; i < N; i++){
+
+		if ( verbose > 2 && !omp_get_thread_num() )
+            display -> Progress(i, N, omp_get_num_threads() );
+
+	    T sum = 0.0;
+
+	    for (std::size_t j = 0; j < N; j++){
+
+	        T W   = Kernel(_x[i] - _x[j], _y[i] - _y[j]);
+	        f[i] += W * _z[j];
+	        sum  += W;
+	    }
+
+	    f[i] /= sum;
+	}
+
+	if (verbose > 2)
+		display -> Progress(1, 1); // complete
+
+	// solve for variances at data points
+	std::vector<T> var(N, 0.0);
+	for (std::size_t i = 0; i < N; i++)
+		var[i] = std::pow(_z[i] - f[i], 2.0);
+
+	// solve for smooth surface through variance points
+	KernelFit2D<T> profile(_x, _y, var, _b);
+
+	return profile.Solve(x, y, unbiased);
+}
+
+template<class T>
+std::vector< std::vector<T> > KernelFit2D<T>::Variance(const std::vector<T> &x,
+	const std::vector<T> &y, T (*W)(T, T), const bool unbiased){
+
+	//
+	// Solve for the estimated standard deviation by evaluating
+	// the profile *at* the raw data points. This version accepts an
+	// alternative kernel function provided by the user.
+	//
+
+	if ( x.empty() || y.empty() )
+		throw KernelFitError("From KernelFit2D::Variance(), one or both of the "
+	    "input vectors were empty!");
+
+	// initialize vector for profile at data points
+	std::vector<T> f(N, 0.0);
+
+	// solve profile at data points
+	#pragma omp parallel for shared(f)
+	for (std::size_t i = 0; i < N; i++){
+
+		if ( verbose > 2 && !omp_get_thread_num() )
+            display -> Progress(i, N, omp_get_num_threads() );
+
+	    T sum = 0.0;
+
+	    for (std::size_t j = 0; j < N; j++){
+
+	        T WW  = W(_x[i] - _x[j], _y[i] - _y[j]);
+	        f[i] += WW * _z[j];
+	        sum  += WW;
+	    }
+
+	    f[i] /= sum;
+	}
+
+	if (verbose > 2)
+		display -> Progress(1, 1); // complete
+	
+	// solve for variances at data points
+	std::vector<T> var(_x.size(), 0.0);
+	for (std::size_t i = 0; i < _x.size(); i++)
+		var[i] = std::pow(_z[i] - f[i], 2.0);
+
+	// solve for smooth surface through variance points
+	KernelFit2D<T> profile(_x, _y, var, _b);
+
+	return profile.Solve(x, y, unbiased);
 }
 
 template<class T>
@@ -308,40 +478,13 @@ std::vector< std::vector<T> > KernelFit2D<T>::StdDev(const std::vector<T> &x,
 	    "input vectors were empty!");
 
 	// initialize vector for profile at data points
-	std::vector<T> f(N, 0.0);
+	std::vector< std::vector<T> > stdev = Variance(x, y, unbiased);
 
-	// solve profile at data points
-	#pragma omp parallel for shared(f)
-	for (std::size_t i = 0; i < N; i++){
-
-	    T sum = 0.0;
-
-	    for (std::size_t j = 0; j < N; j++){
-
-	        T W   = Kernel(_x[i] - _x[j], _y[i] - _y[j]);
-	        f[i] += W * _z[j];
-	        sum  += W;
-	    }
-
-	    f[i] /= sum;
-	}
-
-	// solve for variances at data points
-	std::vector<T> var(N, 0.0);
-	for (std::size_t i = 0; i < N; i++)
-		var[i] = std::pow(_z[i] - f[i], 2.0);
-
-	// solve for smooth surface through variance points
-	KernelFit2D<T> profile(_x, _y, var, _b);
-	std::vector< std::vector<T> > stdev = profile.Solve(x, y, unbiased);
-
-	// take sqrt for standard deviation
+	// take the sqrt for the standard deviation
 	#pragma omp parallel for shared(stdev)
 	for (std::size_t i = 0; i < x.size(); i++)
 	for (std::size_t j = 0; j < y.size(); j++)
 		stdev[i][j] = std::sqrt(stdev[i][j]);
-
-	return stdev;
 }
 
 template<class T>
@@ -359,34 +502,9 @@ std::vector< std::vector<T> > KernelFit2D<T>::StdDev(const std::vector<T> &x,
 	    "input vectors were empty!");
 
 	// initialize vector for profile at data points
-	std::vector<T> f(N, 0.0);
+	std::vector< std::vector<T> > stdev = Variance(x, y, W, unbiased);
 
-	// solve profile at data points
-	#pragma omp parallel for shared(f)
-	for (std::size_t i = 0; i < N; i++){
-
-	    T sum = 0.0;
-
-	    for (std::size_t j = 0; j < N; j++){
-
-	        T WW  = W(_x[i] - _x[j], _y[i] - _y[j]);
-	        f[i] += WW * _z[j];
-	        sum  += WW;
-	    }
-
-	    f[i] /= sum;
-	}
-
-	// solve for variances at data points
-	std::vector<T> var(_x.size(), 0.0);
-	for (std::size_t i = 0; i < _x.size(); i++)
-		var[i] = std::pow(_z[i] - f[i], 2.0);
-
-	// solve for smooth surface through variance points
-	KernelFit2D<T> profile(_x, _y, var, _b);
-	std::vector< std::vector<T> > stdev = profile.Solve(x, y, unbiased);
-
-	// take sqrt for standard deviation
+	// take the sqrt for the standard deviation
 	#pragma omp parallel for shared(stdev)
 	for (std::size_t i = 0; i < x.size(); i++)
 	for (std::size_t j = 0; j < y.size(); j++)

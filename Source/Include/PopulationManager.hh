@@ -63,27 +63,27 @@ private:
 
 	// parallel mt19937 PRNG array
 	ParallelMT *generator;
-    
+
     // Monitor
     Monitor *display;
-    
+
     // parser
     Parser *parser;
 
     // helper function for building the `Axis` map
     std::vector<double> Linespace(const double, const double, const std::size_t);
-    
+
 	// limits for volume
 	std::vector<double> Xlimits, Ylimits, Zlimits;
-    
+
     // map analysis coordinates to line-spaces
     std::map<std::string, std::vector<double>> Axis;
     std::vector<std::string> axis;
     std::vector<std::size_t> resolution;
-    
+
     // map of functions, (just like in ProfileBase)
     std::map< std::string, double (*)(const Vector&) > Coord;
-    
+
     // functions in the above map (calls to vector coordinates)
     static double X(const Vector &vec)     { return vec.X();     }
     static double Y(const Vector &vec)     { return vec.Y();     }
@@ -98,13 +98,14 @@ private:
 	std::vector<Interval> interval;
 
 	// nearest neighbor seperations and match to specified coordinates
-	std::vector<double> seperations, coordinates;
+	std::vector<double> seperations, pooled_mean_1D, pooled_variance_1D;
+	std::vector< std::vector<double> > pooled_mean_2D, pooled_variance_2D;
     double max_seperation;
 
 	// simulation parameters from parser
 	std::size_t N, samples;
 	unsigned long long first_seed;
-	int threads, verbose;
+	int threads, trials, verbose;
     bool analysis;
     double mean_bandwidth, stdev_bandwidth;
 

@@ -13,6 +13,8 @@
 #include <cmath>
 
 #include <Exception.hh>
+#include <Parser.hh>
+#include <Monitor.hh>
 
 namespace Gaia {
 
@@ -36,6 +38,14 @@ public:
         const bool unbiased = false);
 
 	// solve for estimated deviations
+    std::vector<T> Variance(const std::vector<T> &x,
+		const bool unbiased = false);
+
+    // solve for estimated deviations by alternative kernel function
+    std::vector<T> Variance(const std::vector<T> &x, T (*W)(T),
+        const bool unbiased = false);
+
+	// solve for estimated deviations
     std::vector<T> StdDev(const std::vector<T> &x, const bool unbiased = false);
 
     // solve for estimated deviations by alternative kernel function
@@ -50,6 +60,10 @@ protected:
 	T _b;
     std::vector<T> _x, _y;
     std::size_t N;
+
+	Parser *parser;
+	Monitor *display;
+	int verbose;
 };
 
 template<class T>
@@ -72,6 +86,14 @@ public:
     std::vector< std::vector<T> > Solve(const std::vector<T> &x,
         const std::vector<T> &y, T (*W)(T, T), const bool unbiased = false);
 
+	// solve for estimated deviations
+    std::vector< std::vector<T> > Variance(const std::vector<T> &x,
+    	const std::vector<T> &y, const bool unbiased = false);
+
+    // solve for estimated deviations
+    std::vector< std::vector<T> > Variance(const std::vector<T> &x,
+        const std::vector<T> &y, T (*W)(T, T), const bool unbiased = false);
+
     // solve for estimated deviations
     std::vector< std::vector<T> > StdDev(const std::vector<T> &x,
     	const std::vector<T> &y, const bool unbiased = false);
@@ -90,6 +112,9 @@ protected:
 	std::vector<T> _x, _y, _z;
     std::size_t N;
 
+	Parser *parser;
+	Monitor *display;
+	int verbose;
 };
 
 // exception thrown by KernelFit objects
