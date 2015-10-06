@@ -10,9 +10,9 @@
 #include <algorithm>
 #include <omp.h>
 
-#include <KernelFit.hh>
-#include <Parser.hh>
-#include <Monitor.hh>
+#include <KernelFit.hpp>
+#include <Parser.hpp>
+#include <Monitor.hpp>
 
 namespace Gaia {
 

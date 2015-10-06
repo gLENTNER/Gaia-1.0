@@ -5,8 +5,8 @@
 // This source file contains the definitions for the MT19937 object and the
 // wrapper class ParallelMT.
 
-#include <Random.hh>
-#include <Exception.hh>
+#include <Random.hpp>
+#include <Exception.hpp>
 
 namespace Gaia {
 

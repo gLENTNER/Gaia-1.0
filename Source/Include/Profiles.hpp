@@ -1,6 +1,6 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
 // See LICENSE file (GPLv3)
-// Include/Profiles.hh
+// Include/Profiles.hpp
 //
 // The various `Profiles` can be defined here. Every `Profile` class should
 // be derived from `ProfileBase`. If your profile will import from a file there
@@ -13,8 +13,8 @@
 
 #include <cmath>
 
-#include <ProfileBase.hh>
-#include <Vector.hh>
+#include <ProfileBase.hpp>
+#include <Vector.hpp>
 
 namespace Gaia {
 

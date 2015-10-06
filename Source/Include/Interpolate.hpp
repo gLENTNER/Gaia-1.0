@@ -1,6 +1,6 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
 // See LICENSE file (GPLv3)
-// Include/Interpolation.hh
+// Include/Interpolation.hpp
 //
 // General interpolation objects. Interp1D and Interp2D provide
 // Linear and Bilinear Interpolation respectively.

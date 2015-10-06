@@ -8,8 +8,8 @@
 #include <iostream>
 #include <exception>
 
-#include <Simulation.hh>
-#include <Exception.hh>
+#include "../Include/Simulation.hpp"
+#include <Exception.hpp>
 
 int main( const int argc, const char *argv[] ){
 

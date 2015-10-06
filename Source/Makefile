@@ -3,52 +3,36 @@
 #
 # Makefile for GAIA-2.1.1 project.
 
-# variables
-compile = g++
-debug   = 
-ccflags = -fopenmp -std=c++11
-exe     = Bin/Gaia
-bin     = Bin
-inc     = Include
-lib     = Library
-obj     = Object
+CC        = g++-5
+CCFLAGS   = -fopenmp -std=c++11
+EXE       = gaia
+INC       = Include
+LIB       = Library
+OBJ       = Objects
+MAIN      = Library/Main
 
-# change this line to install to a different location!
-install = /usr/bin/
+Tools     = KernelFit Interpolate Random
+Framework = Simulation Parser Monitor FileManager PopulationManager
+Profiles  = ProfileBase ProfileManager
+
+Sources   = $(addprefix $(OBJ)/, $(Framework) $(Tools) $(Profiles))
+Objects   = $(addsuffix .o, $(Sources))
 
 # Primary `link`ing target
-link: Main libTools libFramework libProfiles
-	${compile} ${debug} -o ${exe} Main.o -I${inc} -L. \
-		-lFramework -lProfiles -lTools ${ccflags}
-	mv *.a *.o ${obj}/
+$(EXE): lib$(EXE).a $(MAIN).o
+	$(CC) -o $(EXE) $(MAIN).O -I$(INC) -L. -l$(EXE) $(CCFLAGS)
 
-Tools      = KernelFit.o Interpolate.o Random.o
-Tools:       KernelFit.o Interpolate.o Random.o
-
-Framework  = Simulation.o Parser.o Monitor.o FileManager.o PopulationManager.o
-Framework:   Simulation.o Parser.o Monitor.o FileManager.o PopulationManager.o
-
-Profiles   = ProfileBase.o ProfileManager.o
-Profiles:    ProfileBase.o ProfileManager.o
-
-# library construction template
-lib%: %
-	ar -rv $@.a ${$*}
-	ranlib $@.a
-
-# main has no header file
-Main: ${lib}/Main.cc
-	${compile} ${debug} -c ${lib}/Main.cc -I${inc} ${ccflags}
+# archive construction template
+lib$(EXE).a: $(Objects)
+	ar -rv $@ $(Objects)
+	ranlib $@
 
 # all objects compiled with this template
-%.o: ${lib}/%.cc ${inc}/%.hh
-	${compile} ${debug} -c ${lib}/$*.cc -I${inc} ${ccflags}
-
-.PHONY: clean
+$(OBJ)/%.o: $(LIB)/%.cpp $(INC)/%.hpp
+	$(CC) -c $< -o $@ -I$(INC) $(CCFLAGS)
 
 # clear all objects and archives
 clean:
-	rm -rf ${obj}/{*.o,*.a}
+	rm -f $(Objects) lib$(EXE).a
 
-install:
-	cp ${exe} ${install}
+.PHONY: clean

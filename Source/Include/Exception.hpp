@@ -1,6 +1,6 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
 // See LICENSE file (GPLv3)
-// Include/Exception.hh
+// Include/Exception.hpp
 //
 // This header file contains a base and derived exception classes
 // specific to the GAIA project.

@@ -2,15 +2,15 @@
 // See LICENSE file (GPLv3)
 // Library/ProfileManager.cc
 //
-// TODO: source
+// #TODO:40 source
 
 #include <sstream>
 #include <vector>
 #include <string>
 #include <map>
 
-#include <ProfileManager.hh>
-#include <Profiles.hh>
+#include <ProfileManager.hpp>
+#include <Profiles.hpp>
 
 namespace Gaia {
 
@@ -64,7 +64,7 @@ void ProfileManager::Initialize(){
             warning << "From file `" << parser -> GetRCFile() << "`, ";
             warning << "the given profile name `" << profile.first;
             warning << "` does not match any available. Be sure that the ";
-            warning << "profiles defined in `Profiles.hh` match those ";
+            warning << "profiles defined in `Profiles.hpp` match those ";
             warning << "listed in `ProfileManager::Initialize()` from ";
             warning << "`ProfileManager.cc`. \n";
             throw ProfileError( warning.str() );

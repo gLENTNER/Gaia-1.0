@@ -1,6 +1,6 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
 // See LICENSE file (GPLv3)
-// Include/ProfileBase.hh
+// Include/ProfileBase.hpp
 //
 // TODO: header
 
@@ -11,9 +11,9 @@
 #include <vector>
 #include <map>
 
-#include <Vector.hh>
-#include <Interpolate.hh>
-#include <Parser.hh>
+#include <Vector.hpp>
+#include <Interpolate.hpp>
+#include <Parser.hpp>
 
 namespace Gaia {
 

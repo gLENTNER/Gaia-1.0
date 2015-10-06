@@ -2,7 +2,7 @@
 // See LICENSE file (GPLv3)
 // Library/ProfileBase.cc
 //
-// TODO: source
+// #TODO:30 source
 
 #include <iostream>
 #include <fstream>
@@ -11,10 +11,10 @@
 #include <vector>
 #include <stdlib.h>
 
-#include <ProfileBase.hh>
-#include <Exception.hh>
-#include <Interpolate.hh>
-#include <Parser.hh>
+#include <ProfileBase.hpp>
+#include <Exception.hpp>
+#include <Interpolate.hpp>
+#include <Parser.hpp>
 
 namespace Gaia {
 
@@ -148,14 +148,14 @@ void ProfileBase::Initialize(std::string &filename){
 			std::stringstream warning;
 			warning << "From file `" << filename << "`, I have detected ";
 			warning << " a 1D data set but you didn't specify an axis ";
-			warning << " for `" << _name << "` in `Profiles.hh`!\n";
+			warning << " for `" << _name << "` in `Profiles.hpp`!\n";
 
 			throw ProfileError( warning.str() );
 
 		} else if ( Coord.find(_axis1) == Coord.end() ){
 
 			std::stringstream warning;
-			warning << "In `" << _name << "` from `Profiles.hh`, ";
+			warning << "In `" << _name << "` from `Profiles.hpp`, ";
 			warning << "the axis specified does not match any of the ";
 			warning << "available coordinates!\n";
 
@@ -166,7 +166,7 @@ void ProfileBase::Initialize(std::string &filename){
 			std::stringstream warning;
 			warning << "From file `" << filename << "`, I have detected ";
 			warning << " a 1D data set but you specified two axis ";
-			warning << " for `" << _name << "` in `Profiles.hh`! ";
+			warning << " for `" << _name << "` in `Profiles.hpp`! ";
 			warning << "This is ambiguous, see README.md for details.\n";
 
 			throw ProfileError( warning.str() );
@@ -187,14 +187,14 @@ void ProfileBase::Initialize(std::string &filename){
 			std::stringstream warning;
 			warning << "From file `" << filename << "`, I have detected ";
 			warning << "a 2D data set but you didn't specify two axis ";
-			warning << "for `" << _name << "` in `Profiles.hh`!\n";
+			warning << "for `" << _name << "` in `Profiles.hpp`!\n";
 
 			throw ProfileError( warning.str() );
 
 		} else if ( Coord.find(_axis1) == Coord.end() ){
 
 			std::stringstream warning;
-			warning << "In `" << _name << "` from `Profiles.hh`, ";
+			warning << "In `" << _name << "` from `Profiles.hpp`, ";
 			warning << "the first axis specified does not match any ";
 			warning << "of the available coordinates!\n";
 
@@ -203,7 +203,7 @@ void ProfileBase::Initialize(std::string &filename){
 		} else if ( Coord.find(_axis2) == Coord.end() ){
 
 			std::stringstream warning;
-			warning << "In `" << _name << "` from `Profiles.hh`, ";
+			warning << "In `" << _name << "` from `Profiles.hpp`, ";
 			warning << "the second axis specified does not match any ";
 			warning << "of the available coordinates!\n";
 
@@ -213,7 +213,7 @@ void ProfileBase::Initialize(std::string &filename){
                    Limits.find(_axis2) == Limits.end() ){
 
             std::stringstream warning;
-            warning << "In `" << _name << "` from `Profiles.hh`, one or ";
+            warning << "In `" << _name << "` from `Profiles.hpp`, one or ";
             warning << "more of the axis specified does not match any ";
             warning << "of the allowed coordinates!\n";
 

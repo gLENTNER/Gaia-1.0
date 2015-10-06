@@ -10,7 +10,7 @@
 #include <string>
 #include <omp.h>
 
-#include <Monitor.hh>
+#include <Monitor.hpp>
 
 namespace Gaia {
 

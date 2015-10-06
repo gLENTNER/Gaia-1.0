@@ -8,9 +8,15 @@ set --num-trials 2
 set --num-particles 1e5
 
 set --pos-path "Output/pos-blue-"
-#set --raw-path "Output/raw-blue-"
+set --raw-path "Output/raw-blue-"
+set --map-path "Output/map-blue-"
+set --out-path "Output/out-blue-"
 
-#set Analysis R 1e3
+
+
+set Analysis R 1e3
+set --mean-bandwidth 0.5
+set --stdev-bandwidth 0.5
 
 #include MassDensity
 #include Metallicity

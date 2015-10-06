@@ -1,6 +1,6 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
 // See LICENSE file (GPLv3)
-// Include/PopulationManager.hh
+// Include/PopulationManager.hpp
 //
 // TODO: header
 
@@ -9,11 +9,11 @@
 
 #include <vector>
 
-#include <FileManager.hh>
-#include <ProfileManager.hh>
-#include <Monitor.hh>
-#include <Random.hh>
-#include <Vector.hh>
+#include <FileManager.hpp>
+#include <ProfileManager.hpp>
+#include <Monitor.hpp>
+#include <Random.hpp>
+#include <Vector.hpp>
 
 namespace Gaia {
 

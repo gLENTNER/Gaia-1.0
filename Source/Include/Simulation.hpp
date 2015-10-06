@@ -1,6 +1,6 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
 // See LICENSE file (GPLv3)
-// Include/Simulation.hh
+// Include/Simulation.hpp
 //
 // This header file gives the template for the `Simulation` class. This object
 // is the manager for the GAIA simulation. It essentially just puts all the
@@ -10,10 +10,10 @@
 #ifndef _SIMULATION_HH_
 #define _SIMULATION_HH_
 
-#include <Parser.hh>
-#include <Monitor.hh>
-#include <FileManager.hh>
-#include <PopulationManager.hh>
+#include <Parser.hpp>
+#include <Monitor.hpp>
+#include <FileManager.hpp>
+#include <PopulationManager.hpp>
 
 namespace Gaia {
 

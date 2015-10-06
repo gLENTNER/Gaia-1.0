@@ -1,6 +1,6 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
 // See LICENSE file (GPLv3)
-// Include/Vector.hh
+// Include/Vector.hpp
 //
 // This is the header file for the `Vector` class. A `Vector` in this case
 // is the simple representation of a point in R3. This allows the `Profile`
@@ -14,7 +14,7 @@
 #include <cmath>
 #include <iostream>
 
-#include <Exception.hh>
+#include <Exception.hpp>
 
 #ifndef Half_Pi
 // no need for repeat calculations

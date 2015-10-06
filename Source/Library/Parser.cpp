@@ -7,7 +7,7 @@
 // to `main` at runtime and to read the configuration file, retaining the
 // parameters for retrieval by the other objects.
 //
-// TODO: Add `source` functionality for rc files, _random_seed
+// #TODO:10 Add `source` functionality for rc files, _random_seed
 
 #include <iostream>
 #include <string>
@@ -20,8 +20,8 @@
 #include <omp.h>
 #include <stdlib.h>
 
-#include <Parser.hh>
-#include <Exception.hh>
+#include <Parser.hpp>
+#include <Exception.hpp>
 
 namespace Gaia {
 

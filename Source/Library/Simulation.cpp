@@ -11,11 +11,11 @@
 #include <sstream>
 #include <vector>
 
-#include <Simulation.hh>
-#include <FileManager.hh>
-#include <Monitor.hh>
-#include <PopulationManager.hh>
-#include <Parser.hh>
+#include <Simulation.hpp>
+#include <FileManager.hpp>
+#include <Monitor.hpp>
+#include <PopulationManager.hpp>
+#include <Parser.hpp>
 
 namespace Gaia {
 

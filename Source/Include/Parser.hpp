@@ -1,6 +1,6 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
 // See LICENSE file (GPLv3)
-// Include/Parser.hh
+// Include/Parser.hpp
 //
 // This header file contains the class template for the `Parser` object.
 // The purpose of this singleton class is to interpret the arguments passed

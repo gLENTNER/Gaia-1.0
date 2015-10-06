@@ -2,21 +2,21 @@
 // See LICENSE file (GPLv3)
 // Library/PopulationManager.cc
 //
-// TODO: source
+// #TODO:20 source
 
 #include <omp.h>
 
 #include <fstream>
 #include <cmath>
 
-#include <PopulationManager.hh>
-#include <ProfileManager.hh>
-#include <FileManager.hh>
-#include <Exception.hh>
-#include <KernelFit.hh>
-#include <Vector.hh>
-#include <Parser.hh>
-#include <Random.hh>
+#include <PopulationManager.hpp>
+#include <ProfileManager.hpp>
+#include <FileManager.hpp>
+#include <Exception.hpp>
+#include <KernelFit.hpp>
+#include <Vector.hpp>
+#include <Parser.hpp>
+#include <Random.hpp>
 
 #ifndef pi
 #define pi 3.141592653589793
@@ -51,13 +51,13 @@ void PopulationManager::Initialize(){
 
 	// initialize profile manager
 	profiles = new ProfileManager();
-    profiles -> Initialize();
+	profiles -> Initialize();
 
 	// grab the file manager
 	file = FileManager::GetInstance();
 
-    // grab the Monitor
-    display = Monitor::GetInstance();
+	// grab the Monitor
+	display = Monitor::GetInstance();
 
 	// grab the parser
 	parser = Parser::GetInstance();
@@ -67,12 +67,12 @@ void PopulationManager::Initialize(){
 	first_seed = parser -> GetFirstSeed();
 	threads    = parser -> GetNumThreads();
 	trials     = parser -> GetNumTrials();
-    verbose    = parser -> GetVerbosity();
-    analysis   = parser -> GetAnalysisFlag();
-    samples    = parser -> GetSampleRate() * double(N);
+	verbose    = parser -> GetVerbosity();
+	analysis   = parser -> GetAnalysisFlag();
+	samples    = parser -> GetSampleRate() * double(N);
 
-    mean_bandwidth  = parser -> GetMeanBandwidth();
-    stdev_bandwidth = parser -> GetStdevBandwidth();
+	mean_bandwidth  = parser -> GetMeanBandwidth();
+	stdev_bandwidth = parser -> GetStdevBandwidth();
 
 	// get cartesian limits for `box`
 	Xlimits = parser -> GetXlimits();
@@ -90,12 +90,12 @@ void PopulationManager::Initialize(){
 	// build intervals on `positions` vector
 	interval = Interval::Build(positions, threads);
 
-    // compute the `span` of the space
-    Vector span(
-        Xlimits[1] - Xlimits[0], // maximum distance in `x`
-        Ylimits[1] - Ylimits[0], // maximum distance in `y`
-        Zlimits[1] - Zlimits[0]  // maximum distance in `z`
-    );
+	// compute the `span` of the space
+	Vector span(
+		Xlimits[1] - Xlimits[0], // maximum distance in `x`
+		Ylimits[1] - Ylimits[0], // maximum distance in `y`
+		Zlimits[1] - Zlimits[0]  // maximum distance in `z`
+	);
 
     // initialization for FindNeighbors() algorithm
     max_seperation = span.Mag();
@@ -150,6 +150,8 @@ void PopulationManager::Initialize(){
 	pooled_mean_1D = init_1D;
 	pooled_variance_1D = init_1D;
 
+	std::cout << "peek-a-boo!" << std::endl;
+
 	// initialize 2D pooled statistics vectors
 	std::vector< std::vector<double> > init_2D(resolution[0],
 		std::vector<double>(resolution[1], 0.0));
@@ -170,9 +172,9 @@ void PopulationManager::Initialize(){
 // build a new population set
 void PopulationManager::Build(const int trial){
 
-    if ( verbose > 2 ) std::cout
-        << "\n --------------------------------------------------"
-        << "\n Building population #" << trial + 1 << std::endl;
+	if ( verbose > 2 ) std::cout
+		<< "\n --------------------------------------------------"
+		<< "\n Building population #" << trial + 1 << std::endl;
 
 	#pragma omp parallel for
 	for (int i = 0; i < threads; i++)
@@ -400,6 +402,21 @@ void PopulationManager::Analysis(){
         "something is wrong. Axis.size() > 2");
 }
 
+std::vector<double> PopulationManager::Linespace(const double start,
+    const double end, const std::size_t length){
+
+    // initialize the vector
+    std::vector<double> linespace( length, 0.0 );
+
+    linespace[0] = start;
+    double dx    = (end - start) / double(length - 1);
+
+    for ( std::size_t i = 1; i < length; i++ )
+        linespace[i] = linespace[i-1] + dx;
+
+    return linespace;
+}
+
 std::vector<Interval> Interval::Build(const std::vector<Vector> &input,
 	const std::size_t num){
 	//
@@ -414,38 +431,23 @@ std::vector<Interval> Interval::Build(const std::vector<Vector> &input,
 	std::size_t interval_size = input.size() / num;
 
 	// the first interval starts with the first element of the `input`
-	// the name `last` will make sense further down
-	Interval last(0, interval_size);
-	output.push_back(last);
+	// the name `previous` will make sense further down
+	Interval previous(0, interval_size);
+	output.push_back(previous);
 
 	// leap-frog through the intervals
 	for (std::size_t i = 0; i < num - 1; i++){
 
-		Interval next(last.end + 1, last.end + interval_size);
+		Interval next(previous.end + 1, previous.end + interval_size);
 		output.push_back(next);
 
-		last = next;
+		previous = next;
 	}
 
 	// rectify final interval (for odd lengths)
 	output[num-1].end = input.size() - 1;
 
 	return output;
-}
-
-std::vector<double> PopulationManager::Linespace(const double start,
-    const double end, const std::size_t length){
-
-    // initialize the vector
-    std::vector<double> linespace( length, 0.0 );
-
-    linespace[0] = start;
-    double dx    = (end - start) / double(length - 1);
-
-    for ( std::size_t i = 1; i < length; i++ )
-        linespace[i] = linespace[i-1] + dx;
-
-    return linespace;
 }
 
 } // namespace Gaia

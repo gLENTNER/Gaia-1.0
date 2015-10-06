@@ -1,6 +1,6 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
 // See LICENSE file (GPLv3)
-// Include/ProfileManager.hh
+// Include/ProfileManager.hpp
 //
 
 #ifndef _PROFILEMANAGER_HH_
@@ -8,7 +8,7 @@
 
 #include <vector>
 
-#include <ProfileBase.hh>
+#include <ProfileBase.hpp>
 
 namespace Gaia {
 

@@ -1,6 +1,6 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
 // See LICENSE file (GPLv3)
-// Include/FileManager.hh
+// Include/FileManager.hpp
 //
 // TODO: header
 
@@ -11,7 +11,7 @@
 #include <vector>
 #include <map>
 
-#include <Vector.hh>
+#include <Vector.hpp>
 
 namespace Gaia {
 

@@ -1,6 +1,6 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
 // See LICENSE file (GPLv3)
-// Include/KernelFit.hh
+// Include/KernelFit.hpp
 
 // This header file contains the template for the KernelFit objects.
 
@@ -12,9 +12,9 @@
 #include <vector>
 #include <cmath>
 
-#include <Exception.hh>
-#include <Parser.hh>
-#include <Monitor.hh>
+#include <Exception.hpp>
+#include <Parser.hpp>
+#include <Monitor.hpp>
 
 namespace Gaia {
 

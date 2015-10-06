@@ -9,7 +9,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include <Interpolate.hh>
+#include <Interpolate.hpp>
 
 namespace Gaia {
 

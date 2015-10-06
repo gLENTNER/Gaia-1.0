@@ -1,6 +1,6 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
 // See LICENSE file (GPLv3)
-// Include/Monitor.hh
+// Include/Monitor.hpp
 //
 // Header file for the Monitor class.
 // This class contains tools and functions for displaying progress
