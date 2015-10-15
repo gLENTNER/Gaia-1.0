@@ -85,7 +85,7 @@ void ProfileBase::Initialize(std::string &filename){
 		<< " Initializing `" << _name << "` profile from file `"
 		<< filename << "` ...";
 
-    ReplaceAll("~", std::string(getenv("HOME")), filename);
+	ReplaceAll("~", std::string(getenv("HOME")), filename);
 	std::ifstream input( filename.c_str() );
 
 	if ( input ) {
@@ -209,23 +209,23 @@ void ProfileBase::Initialize(std::string &filename){
 
 			throw ProfileError( warning.str() );
 
-        } else if ( Limits.find(_axis1) == Limits.end() ||
-                   Limits.find(_axis2) == Limits.end() ){
+	        } else if ( Limits.find(_axis1) == Limits.end() ||
+	                   Limits.find(_axis2) == Limits.end() ){
 
-            std::stringstream warning;
-            warning << "In `" << _name << "` from `Profiles.hpp`, one or ";
-            warning << "more of the axis specified does not match any ";
-            warning << "of the allowed coordinates!\n";
+	            std::stringstream warning;
+	            warning << "In `" << _name << "` from `Profiles.hpp`, one or ";
+	            warning << "more of the axis specified does not match any ";
+	            warning << "of the allowed coordinates!\n";
 
-            throw ProfileError( warning.str() );
-        }
+	            throw ProfileError( warning.str() );
+	        }
+		
+	        // the `x` and `y` are now line-spaces
+	        _x = Linespace(Limits[_axis1][0], Limits[_axis1][1], _data[0].size());
+	        _y = Linespace(Limits[_axis2][0], Limits[_axis2][1], _data.size());
 
-        // the `x` and `y` are now line-spaces
-        _x = Linespace(Limits[_axis1][0], Limits[_axis1][1], _data[0].size());
-        _y = Linespace(Limits[_axis2][0], Limits[_axis2][1], _data.size());
-
-        // construct the 2D interpolation object
-        BiLinear_Data = new Interpolate::BiLinear<double>(_x, _y, _data);
+	        // construct the 2D interpolation object
+	        BiLinear_Data = new Interpolate::BiLinear<double>(_x, _y, _data);
 	}
 
 	// update user

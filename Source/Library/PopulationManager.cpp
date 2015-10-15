@@ -97,76 +97,81 @@ void PopulationManager::Initialize(){
 		Zlimits[1] - Zlimits[0]  // maximum distance in `z`
 	);
 
-    // initialization for FindNeighbors() algorithm
-    max_seperation = span.Mag();
+	// initialization for FindNeighbors() algorithm
+	max_seperation = span.Mag();
 
-    // find furthest distance in each direction
-    double max_X = std::abs(Xlimits[0]) < std::abs(Xlimits[1]) ?
-        std::abs(Xlimits[1]) : std::abs(Xlimits[0]);
+	// find furthest distance in each direction
+	double max_X = std::abs(Xlimits[0]) < std::abs(Xlimits[1]) ?
+		std::abs(Xlimits[1]) : std::abs(Xlimits[0]);
 
-    double max_Y = std::abs(Ylimits[0]) < std::abs(Ylimits[1]) ?
-        std::abs(Ylimits[1]) : std::abs(Ylimits[0]);
+	double max_Y = std::abs(Ylimits[0]) < std::abs(Ylimits[1]) ?
+		std::abs(Ylimits[1]) : std::abs(Ylimits[0]);
 
-    double max_Z = std::abs(Zlimits[0]) < std::abs(Zlimits[1]) ?
-        std::abs(Zlimits[1]) : std::abs(Zlimits[0]);
+	double max_Z = std::abs(Zlimits[0]) < std::abs(Zlimits[1]) ?
+		std::abs(Zlimits[1]) : std::abs(Zlimits[0]);
 
-    double max_R   = std::sqrt(max_X*max_X + max_Y*max_Y);
-    double max_Rho = std::sqrt(max_X*max_X + max_Y*max_Y + max_Z*max_Z);
+	double max_R   = std::sqrt(max_X*max_X + max_Y*max_Y);
+	double max_Rho = std::sqrt(max_X*max_X + max_Y*max_Y + max_Z*max_Z);
 
-    std::vector<double> Rlimits     = { 0.0, max_R    };
-    std::vector<double> Rholimits   = { 0.0, max_Rho  };
-    std::vector<double> Philimits   = { 0.0, 2.0 * pi };
-    std::vector<double> Thetalimits = { 0.9, pi       };
+	std::vector<double> Rlimits     = { 0.0, max_R    };
+	std::vector<double> Rholimits   = { 0.0, max_Rho  };
+	std::vector<double> Philimits   = { 0.0, 2.0 * pi };
+	std::vector<double> Thetalimits = { 0.9, pi       };
 
-    // build appropriate linespace limits for each axis
-    std::map<std::string, std::vector<double>> Limits;
-    Limits["X"    ] = Xlimits;
-    Limits["Y"    ] = Ylimits;
-    Limits["Z"    ] = Zlimits;
-    Limits["R"    ] = Rlimits;
-    Limits["Rho"  ] = Rholimits;
-    Limits["Phi"  ] = Philimits;
-    Limits["Theta"] = Thetalimits;
+	// build appropriate linespace limits for each axis
+	std::map<std::string, std::vector<double>> Limits;
+	Limits["X"    ] = Xlimits;
+	Limits["Y"    ] = Ylimits;
+	Limits["Z"    ] = Zlimits;
+	Limits["R"    ] = Rlimits;
+	Limits["Rho"  ] = Rholimits;
+	Limits["Phi"  ] = Philimits;
+	Limits["Theta"] = Thetalimits;
 
-    // set the appropriate line-spaces for the analysis
-    axis       = parser -> GetAxes();
-    resolution = parser -> GetResolution();
-    for ( int i = 0; i < axis.size(); i++ ){
+	// set the appropriate line-spaces for the analysis
+	axis       = parser -> GetAxes();
+	resolution = parser -> GetResolution();
+	for ( int i = 0; i < axis.size(); i++ ){
 
-        Axis[ axis[i] ] = Linespace(
+		Axis[ axis[i] ] = Linespace(
 
-            Limits[ axis[i] ][0], // start
-            Limits[ axis[i] ][1], // end
-            resolution[i]         // number of points for this axis
-        );
-    }
+			Limits[ axis[i] ][0], // start
+			Limits[ axis[i] ][1], // end
+			resolution[i]         // number of points for this axis
+		);
+	}
 
 	// save map information to file
 	file -> SaveMap( Axis );
 
-	// initialize 1D pooled statistics vectors
-	std::vector<double> init_1D(resolution[0], 0.0);
+	if (resolution.size() == 1){
+		//FIXME: pooled mean/variance 1D initialization
 
-	pooled_mean_1D = init_1D;
-	pooled_variance_1D = init_1D;
+		// initialize 1D pooled statistics vectors
+		std::vector<double> init_1D(resolution[0], 0.0);
 
-	std::cout << "peek-a-boo!" << std::endl;
+		pooled_mean_1D = init_1D;
+		pooled_variance_1D = init_1D;
 
-	// initialize 2D pooled statistics vectors
-	std::vector< std::vector<double> > init_2D(resolution[0],
-		std::vector<double>(resolution[1], 0.0));
+	} else if (resolution.size() == 2){
+		//FIXME: pooled mean/variance 2D initialization
 
-	pooled_mean_2D = init_2D;
-	pooled_variance_2D = init_2D;
+		// initialize 2D pooled statistics vectors
+		std::vector< std::vector<double> > init_2D(resolution[0],
+			std::vector<double>(resolution[1], 0.0));
 
-    // build coordinate function map for transposing `positions`
-    Coord["X"] = X;
-    Coord["Y"] = Y;
-    Coord["Z"] = Z;
-    Coord["R"] = R;
-    Coord["Rho"] = Rho;
-    Coord["Phi"] = Phi;
-    Coord["Theta"] = Theta;
+		pooled_mean_2D = init_2D;
+		pooled_variance_2D = init_2D;
+	}
+
+	// build coordinate function map for transposing `positions`
+	Coord["X"] = X;
+	Coord["Y"] = Y;
+	Coord["Z"] = Z;
+	Coord["R"] = R;
+	Coord["Rho"] = Rho;
+	Coord["Phi"] = Phi;
+	Coord["Theta"] = Theta;
 }
 
 // build a new population set
@@ -201,13 +206,15 @@ void PopulationManager::Build(const int trial){
 				ProfileBase *this_pdf = pdf;
 
 				if ( this_pdf -> Evaluate(new_position) <
-                    generator -> RandomReal(i) ){
+					generator -> RandomReal(i) ){
 
-					successful = false; break;
+					successful = false;
+					break;
 				}
 			}
 
 			if (successful) {
+
 				// keep the new position vector
 				positions[j] = new_position;
 				break;

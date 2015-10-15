@@ -32,22 +32,23 @@ Simulation::Simulation(const int argc, const char *argv[]){
 	parser = Parser::GetInstance();
 	parser -> Setup(argc, argv);
 
-    if ( parser -> GetVerbosity() ) std::cout
-        << "\n Welcome to GAIA | version 1.0.1"
-        << "\n Copyright (c) Geoffrey Lentner 2015 (GPLv3)\n"
+	if ( parser -> GetVerbosity() )
+		std::cout << "\n Welcome to GAIA | version 1.0.1"
+		<< "\n Copyright (c) Geoffrey Lentner 2015 (GPLv3)\n"
 		<< "\n Interpreting runtime configuration ...\n";
 		std::cout.flush();
 
-	// // create and initialize the file manager
-    file = FileManager::GetInstance();
-    file -> Initialize();
+	// create and initialize the file manager
+	file = FileManager::GetInstance();
+	file -> Initialize();
 
 	// create and initialize the population manager
-    population = new PopulationManager();
-    population -> Initialize();
+	population = new PopulationManager();
+	population -> Initialize();
 
-    if ( parser -> GetDebuggerFlag() )
-        Debug();
+
+	if ( parser -> GetDebuggerFlag() )
+		Debug();
 }
 
 Simulation::~Simulation(){
@@ -74,48 +75,45 @@ void Simulation::Run(){
 	int verbose    = parser -> GetVerbosity();
 	int trials     = parser -> GetNumTrials();
 	bool analysis  = parser -> GetAnalysisFlag();
-    std::size_t N  = parser -> GetNumParticles();
+	std::size_t N  = parser -> GetNumParticles();
 
 	// greet the user
 	if (verbose) std::cout
         << "\n Building " << trials
         << " population(s) of size " << N << " ...\n";
 
-    // iterate over all trials
-    for (int t = 0; t < trials; t++){
+	// iterate over all trials
+	for (int t = 0; t < trials; t++){
 
-        // display progress bar
-        if (verbose == 2)
-            display -> Progress(t, trials);
+		// display progress bar
+		if (verbose == 2)
+		display -> Progress(t, trials);
 
-        // build a new population
-        population -> Build(t);
+		// build a new population
+		population -> Build(t);
 
-        if (analysis){
+		if (analysis){
 
-            // find the nearest neighbor seperations
-            population -> FindNeighbors(t);
+			// find the nearest neighbor seperations
+			population -> FindNeighbors(t);
 
-            // fit a profile to curve
-            population -> ProfileFit(t);
-        }
-    }
+			// fit a profile to curve
+			population -> ProfileFit(t);
+		}
+	}
 
-    // complete progress bar
-    if (verbose == 2)
-        display -> Progress(trials, trials);
+	// complete progress bar
+	if (verbose == 2) display -> Progress(trials, trials);
 
-    // combine statistics for nearest neighbor analysis
-	if (analysis)
-		population -> Analysis();
+	// combine statistics for nearest neighbor analysis
+	if (analysis) population -> Analysis();
 
-	if (verbose)
-		display -> TotalElapsedTime();
+	if (verbose) display -> TotalElapsedTime();
 }
 
 void Simulation::Debug(){
 
-    // FIXME: clean up notation for debugging output!!!!!
+    // #FIXME:0 clean up notation for debugging output!!!!!
     // --------------------------------------------------
 
     // items for debugging mode
