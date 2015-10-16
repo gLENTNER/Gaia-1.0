@@ -9,7 +9,7 @@
 #include <exception>
 
 #include "../Include/Simulation.hpp"
-#include <Exception.hpp>
+#include "../Include/Exception.hpp"
 
 int main( const int argc, const char *argv[] ){
 
@@ -18,6 +18,8 @@ int main( const int argc, const char *argv[] ){
 		// create and run the simulation
 		Gaia::Simulation simulation(argc, argv);
 		simulation.Run();
+
+		return 0;
 
 	} catch (const Gaia::Usage& usage){
 
@@ -34,6 +36,4 @@ int main( const int argc, const char *argv[] ){
 		std::cerr << error.what() << std::endl;
 		return 2;
 	}
-
-	return 0;
 }

@@ -1,23 +1,29 @@
+# Copyright (c) Geoffrey Lentner 2015. All rights reserved.
+# Example/NGC1300/ngc1300rc
 # Example Gaia RC file for simulation of NGC1300
 
 set Xlimits -21.179585    21.179585
-set Ylimits -16.338647689 16.338647689 # this is in kilo-parsecs
+set Ylimits -21.179585    21.179585
+#set Ylimits -16.338647689 16.338647689 # this is in kilo-parsecs
 set Zlimits -0.3          0.3
 
-set --set-verbose 3
-set --num-trials 2
-set --num-particles 1e5
-set --pos-path "Output/pos-blue-"
+set --set-verbose   3
+set --num-trials    1
+set --num-particles 1e4
+set --num-threads   4
 
+set --pos-path "Output/pos-blue-"
 set --raw-path "Output/raw-blue-"
 set --map-path "Output/map-blue-"
 set --out-path "Output/out-blue-"
 
-set --mean-bandwidth 0.5
-set --stdev-bandwidth 0.5
 
 set Analysis R 1e3
 
-#include MassDensity
+set --mean-bandwidth  0.5
+set --stdev-bandwidth 0.5
+set --sample-rate     1
+
+include MilkyWay
 #include Metallicity
-include Surface "Data/ngc1300-blue.csv"
+#include Surface "Data/ngc1300-blue.csv"

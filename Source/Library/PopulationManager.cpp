@@ -293,8 +293,8 @@ void PopulationManager::ProfileFit(const int trial){
         kernel.SetBandwidth(stdev_bandwidth);
 
         if (verbose)
-			std::cout << "\n Solving for sample variances ... \n";
-            std::cout.flush();
+		std::cout << "\n Solving for sample variances ... \n";
+		std::cout.flush();
 
         // solve for the standard deviation of the fit
         std::vector<double> variance = kernel.Variance(Axis[ axis[0] ], true);

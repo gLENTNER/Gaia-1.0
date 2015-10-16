@@ -11,7 +11,7 @@ EXE       = gaia
 INC       = Include
 LIB       = Library
 OBJ       = Objects
-MAIN      = Library/Main
+MAIN      = Objects/Main
 
 Tools     = KernelFit Interpolate Random
 Framework = Simulation Parser Monitor FileManager PopulationManager
@@ -30,8 +30,8 @@ lib$(EXE).a: $(Objects)
 	ranlib $@
 
 # `main`
-$(MAIN).o: $(MAIN).cpp
-	$(CC) -c $< -o $(MAIN).o -I$(INC) $(CCFLAGS)
+# $(MAIN).o: $(MAIN).cpp
+# 	$(CC) -c $< -o $(MAIN).o -I$(INC) $(CCFLAGS)
 
 # all objects compiled with this template
 $(OBJ)/%.o: $(LIB)/%.cpp $(INC)/%.hpp
@@ -43,6 +43,6 @@ install:
 
 # clear all objects and archives
 clean:
-	rm -f $(Objects) lib$(EXE).a
+	rm -f $(Objects) lib$(EXE).a $(MAIN).o
 
 .PHONY: clean

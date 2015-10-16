@@ -190,56 +190,56 @@ void FileManager::SaveOutput(const std::vector<double> &mean,
 void FileManager::SaveOutput( const std::vector< std::vector<double> > &mean,
     const std::vector< std::vector<double> > &variance, const std::size_t trial){
 
-    //
-    // Save mean and standard deviation to file, 2D
-    //
+        //
+        // Save mean and standard deviation to file, 2D
+        //
 
-    // take the sqrt of variance for the standard deviation
-	std::vector< std::vector<double> > stdev = variance;
-    for ( auto& row : stdev )
-    for ( auto& element : row )
-        element = std::sqrt(element);
+        // take the sqrt of variance for the standard deviation
+        std::vector< std::vector<double> > stdev = variance;
+        for ( auto& row : stdev )
+        for ( auto& element : row )
+                element = std::sqrt(element);
 
-    // create map to shorten notation ...
-    std::map< std::string, std::vector< std::vector<double> > > results;
-    results["mean"]  = mean;
-    results["stdev"] = stdev;
+        // create map to shorten notation ...
+        std::map< std::string, std::vector< std::vector<double> > > results;
+        results["mean"]  = mean;
+        results["stdev"] = stdev;
 
-    // counting variable updates filename
-    for( const auto& matrix : results ){
+        // counting variable updates filename
+        for( const auto& matrix : results ){
 
-        // build file name
-        std::stringstream buffer;
-        buffer << out_path << trial << "-" << matrix.first << ".dat";
-        std::string filename = buffer.str();
+                // build file name
+                std::stringstream buffer;
+                buffer << out_path << trial << "-" << matrix.first << ".dat";
+                std::string filename = buffer.str();
 
-        if (verbose) std::cout
-            << "\n\n Saving `" << matrix.first << "` data to file, `"
-            << filename << "` ... ";
-            std::cout.flush();
+                if (verbose) std::cout
+                        << "\n\n Saving `" << matrix.first << "` data to file, `"
+                        << filename << "` ... ";
+                        std::cout.flush();
 
-        // open file and write positions
-        std::ofstream output( filename.c_str() );
+                // open file and write positions
+                std::ofstream output( filename.c_str() );
 
-        if (output) {
+                if (output) {
 
-            output.precision(16);
+                        output.precision(16);
 
-            for ( const auto& row : matrix.second ){
+                        for ( const auto& row : matrix.second ){
 
-                for ( const auto& element : row )
-                    output << element << " ";
+                                for ( const auto& element : row )
+                                        output << element << " ";
 
-                output << std::endl;
-            }
+                                output << std::endl;
+                        }
 
-        } else throw IOError("From FileManager::SaveOutput(), I "
-            "couldn't open the file, `" + filename + "`!");
+                } else throw IOError("From FileManager::SaveOutput(), I "
+                        "couldn't open the file, `" + filename + "`!");
 
-        if (verbose)
-            std::cout << "done";
-            std::cout.flush();
-    }
+                if (verbose)
+                        std::cout << "done";
+                        std::cout.flush();
+        }
 }
 
 } // namespace Gaia
