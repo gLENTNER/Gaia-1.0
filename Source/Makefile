@@ -29,9 +29,6 @@ lib$(EXE).a: $(Objects)
 	ar -rv $@ $(Objects)
 	ranlib $@
 
-# `main`
-# $(MAIN).o: $(MAIN).cpp
-# 	$(CC) -c $< -o $(MAIN).o -I$(INC) $(CCFLAGS)
 
 # all objects compiled with this template
 $(OBJ)/%.o: $(LIB)/%.cpp $(INC)/%.hpp
