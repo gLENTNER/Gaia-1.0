@@ -1,8 +1,8 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
-// See LICENSE file (GPLv3)
+// GNU General Public License v3.0
 // Library/ProfileBase.cc
 //
-// #TODO:30 source
+// #TODO:20 source
 
 #include <iostream>
 #include <fstream>
@@ -219,7 +219,7 @@ void ProfileBase::Initialize(std::string &filename){
 
 	            throw ProfileError( warning.str() );
 	        }
-		
+
 	        // the `x` and `y` are now line-spaces
 	        _x = Linespace(Limits[_axis1][0], Limits[_axis1][1], _data[0].size());
 	        _y = Linespace(Limits[_axis2][0], Limits[_axis2][1], _data.size());

@@ -1,8 +1,8 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
-// See LICENSE file (GPLv3)
+// GNU General Public License v3.0
 // Library/ProfileManager.cc
 //
-// #TODO:40 source
+// #TODO:30 source
 
 #include <sstream>
 #include <vector>

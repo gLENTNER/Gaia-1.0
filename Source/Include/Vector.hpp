@@ -1,5 +1,5 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
-// See LICENSE file (GPLv3)
+// GNU General Public License v3.0
 // Include/Vector.hpp
 //
 // This is the header file for the `Vector` class. A `Vector` in this case
@@ -60,8 +60,8 @@ public:
 		else throw DivError("Radius was zero in Vector::Theta()!");
 	}
 
-    // magnitude is simply an alias for `Rho`
-    double Mag() const {return sqrt(_x*_x + _y*_y + _z*_z);}
+	// magnitude is simply an alias for `Rho`
+	double Mag() const {return sqrt(_x*_x + _y*_y + _z*_z);}
 
 	// `setters` (cartesian coordinates only)
 	void SetX(const double& x){_x = x;}
@@ -70,26 +70,26 @@ public:
 	void SetXYZ(const double& x, const double&y, const double& z){
 		_x = x; _y = y; _z = z;
 	}
-    
-    // addition
-    Vector operator+ ( const Vector &rhs ){
-        
-        Vector result( X() + rhs.X(), Y() + rhs.Y(), Z() + rhs.Z() );
-        return result;
-    }
-    
-    // subtraction
-    Vector operator- ( const Vector &rhs ){
-        
-        Vector result( X() - rhs.X(), Y() - rhs.Y(), Z() - rhs.Z() );
-        return result;
-    }
-    
-    // output to a stream
-    friend std::ostream& operator<< (std::ostream &aStream, const Vector &aVec){
-        aStream << aVec.X() << " " << aVec.Y() << " " << aVec.Z();
-        return aStream;
-    }
+
+	// addition
+	Vector operator+ ( const Vector &rhs ){
+
+	        Vector result( X() + rhs.X(), Y() + rhs.Y(), Z() + rhs.Z() );
+	        return result;
+	    }
+
+	// subtraction
+	Vector operator- ( const Vector &rhs ){
+
+		Vector result( X() - rhs.X(), Y() - rhs.Y(), Z() - rhs.Z() );
+		return result;
+	}
+
+	// output to a stream
+	friend std::ostream& operator<< (std::ostream &aStream, const Vector &aVec){
+		aStream << aVec.X() << " " << aVec.Y() << " " << aVec.Z();
+		return aStream;
+	}
 
 protected:
 

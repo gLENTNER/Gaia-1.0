@@ -1,5 +1,5 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
-// See LICENSE file (GPLv3)
+// GNU General Public License v3.0
 // Include/Monitor.hpp
 //
 // Header file for the Monitor class.
@@ -26,9 +26,9 @@ public:
 	void Start( double freq = 0.25, double bar_width = 35.0 );
 
 	// display progress bar
-	void Progress( long iter, long max_iter, int threads = 1, 
+	void Progress( long iter, long max_iter, int threads = 1,
 		long first_iter = 0 );
-	
+
 	// display total time elapsed
 	void ElapsedTime( );
 	void TotalElapsedTime( );
@@ -48,6 +48,6 @@ private:
 
 };
 
-} // namespace Gaia 
+} // namespace Gaia
 
 #endif

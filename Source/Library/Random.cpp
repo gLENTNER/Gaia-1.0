@@ -1,5 +1,5 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
-// See LICENSE file (GPLv3)
+// GNU General Public License v3.0
 // Library/Random.cc
 //
 // This source file contains the definitions for the MT19937 object and the

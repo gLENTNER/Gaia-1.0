@@ -1,5 +1,5 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
-// See LICENSE file (GPLv3)
+// GNU General Public License v3.0
 // Library/PopulationManager.cc
 //
 // #TODO:20 source
@@ -31,16 +31,18 @@ PopulationManager::PopulationManager(){
 	generator = nullptr;
 }
 
-PopulationManager::~PopulationManager(){
-
+PopulationManager::~PopulationManager()
+{
 	// delete profile manager
-	if (profiles){
+	if (profiles)
+	{
 		delete profiles;
 		profiles = nullptr;
 	}
 
 	// delete PRNG
-	if (generator){
+	if (generator)
+	{
 		delete generator;
 		generator = nullptr;
 	}

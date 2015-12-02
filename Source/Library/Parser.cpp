@@ -1,5 +1,5 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
-// See LICENSE file (GPLv3)
+// GNU General Public License v3.0
 // Library/Parser.cc
 //
 // This source file contains the method definitions for the `Parser` object.
@@ -7,7 +7,7 @@
 // to `main` at runtime and to read the configuration file, retaining the
 // parameters for retrieval by the other objects.
 //
-// #TODO:10 Add `source` functionality for rc files, _random_seed
+// #DONE:0 Add `source` functionality for rc files, _random_seed
 
 #include <iostream>
 #include <string>
@@ -96,9 +96,9 @@ void Parser::SetDefaults(){
 	argument["--keep-pos"       ] = "0";
 	argument["--rc-file"        ] = "~/.Gaiarc";
 	argument["--first-seed"     ] = "~"; // will be assigned if not given
-    argument["--sample-rate"    ] = "1";
-    argument["--mean-bandwidth" ] = "0"; // must be assigned for analysis!
-    argument["--stdev-bandwidth"] = "0"; // defaults to --mean-bandwidth
+	argument["--sample-rate"    ] = "1";
+	argument["--mean-bandwidth" ] = "0"; // must be assigned for analysis!
+	argument["--stdev-bandwidth"] = "0"; // defaults to --mean-bandwidth
 	argument["--debug"          ] = "0";
 
 	// arguments who don't need an assigment
@@ -287,8 +287,8 @@ void Parser::Rectify(){
 		throw InputError( "OpenMP says you have less than " +
 			argument["--num-threads"] + " available!" );
 
-    // set threads
-    omp_set_num_threads(_num_threads);
+	// set threads
+	omp_set_num_threads(_num_threads);
 
 	// check trial numbers
 	convert.clear();
@@ -332,33 +332,33 @@ void Parser::Rectify(){
 	else if ( !(convert >> _first_seed) )
         throw InputError("--first-seed needs an interger value!");
 
-    // set sample rate
-    if ( given["--sample-rate"] && given["--no-analysis"] )
-        throw InputError("You requested a specified sample rate but gave the "
-        "no-analysis flag. No analysis will be performed and your sample "
-        "rate will be ignored!");
-    convert.clear();
-    convert.str( argument["--sample-rate"] );
-    if ( !(convert >> _sample_rate) || _sample_rate < 0 || _sample_rate > 1 )
-        throw InputError("--sample-rate needs to be between 0 and 1.");
+	// set sample rate
+	if ( given["--sample-rate"] && given["--no-analysis"] )
+		throw InputError("You requested a specified sample rate but gave the "
+		"no-analysis flag. No analysis will be performed and your sample "
+		"rate will be ignored!");
+	convert.clear();
+	convert.str( argument["--sample-rate"] );
+	if ( !(convert >> _sample_rate) || _sample_rate < 0 || _sample_rate > 1 )
+	throw InputError("--sample-rate needs to be between 0 and 1.");
 
-    // set mean bandwidth
-    if ( !given["--mean-bandwidth"] && !given["--no-analysis"] )
-        throw InputError("You have not specified a mean bandwidth and have "
-            "not given the no-analysis flag. I need to know a bandwidth for "
-            "the KernelFit alogrithm to fit your data!");
-    convert.clear();
-    convert.str( argument["--mean-bandwidth"] );
-    if ( !(convert >> _mean_bandwidth) || _mean_bandwidth < 0 )
-        throw InputError("--mean-bandwidth needs a positive number!");
+	// set mean bandwidth
+	if ( !given["--mean-bandwidth"] && !given["--no-analysis"] )
+		throw InputError("You have not specified a mean bandwidth and have "
+		"not given the no-analysis flag. I need to know a bandwidth for "
+		"the KernelFit alogrithm to fit your data!");
+	convert.clear();
+	convert.str( argument["--mean-bandwidth"] );
+	if ( !(convert >> _mean_bandwidth) || _mean_bandwidth < 0 )
+	throw InputError("--mean-bandwidth needs a positive number!");
 
-    // set bandwidth for standard deviations
-    convert.clear();
-    convert.str( argument["--stdev-bandwidth"] );
-    if ( !(convert >> _stdev_bandwidth) || _stdev_bandwidth < 0 )
-        throw InputError("--stdev-bandwidth needs a positive number!");
-    if ( !given["--stdev-bandwidth"] )
-        _stdev_bandwidth = _mean_bandwidth;
+	// set bandwidth for standard deviations
+	convert.clear();
+	convert.str( argument["--stdev-bandwidth"] );
+	if ( !(convert >> _stdev_bandwidth) || _stdev_bandwidth < 0 )
+		throw InputError("--stdev-bandwidth needs a positive number!");
+	if ( !given["--stdev-bandwidth"] )
+	_stdev_bandwidth = _mean_bandwidth;
 
 	// check for `debug` mode
 	_debug_mode = given["--debug"] ? true : false;
@@ -366,7 +366,7 @@ void Parser::Rectify(){
 
 void Parser::Set(const std::vector<std::string> &line){
 	//
-	// take a vector of cammands from the `_rc_file` and `Set` that
+	// take a vector of commands from the `_rc_file` and `Set` that
 	// parameter.
 	//
 

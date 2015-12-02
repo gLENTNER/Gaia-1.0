@@ -1,5 +1,5 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
-// See LICENSE file (GPLv3)
+// GNU General Public License v3.0
 // Include/Simulation.hpp
 //
 // This header file gives the template for the `Simulation` class. This object

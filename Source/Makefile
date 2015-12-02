@@ -1,7 +1,7 @@
 # Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
 # See LICENSE file (GPLv3)
 #
-# Makefile for GAIA-2.1.1 project.
+# Makefile for gaia-1.0 project.
 
 INSTALL   = /usr/local/bin/
 

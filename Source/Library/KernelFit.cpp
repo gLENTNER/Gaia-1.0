@@ -1,5 +1,5 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
-// See LICENSE file (GPLv3)
+// GNU General Public License v3.0
 // Library/KernelFit.cc
 
 // This source file contains the definitions for the KernelFit objects.
@@ -452,7 +452,7 @@ std::vector< std::vector<T> > KernelFit2D<T>::Variance(const std::vector<T> &x,
 
 	if (verbose > 2)
 		display -> Progress(1, 1); // complete
-	
+
 	// solve for variances at data points
 	std::vector<T> var(_x.size(), 0.0);
 	for (std::size_t i = 0; i < _x.size(); i++)

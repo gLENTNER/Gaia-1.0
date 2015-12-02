@@ -1,5 +1,5 @@
 // Copyright (c) Geoffrey Lentner 2015. All Rights Reserved.
-// See LICENSE file (GPLv3)
+// GNU General Public License v3.0
 // Include/ProfileBase.hpp
 //
 // TODO: header
@@ -24,7 +24,7 @@ public:
 	// construct `Profile` with a name and axis information
 	ProfileBase(const std::string &name, const std::string &axis1 = "",
 		const std::string &axis2 = "");
-	
+
     ~ProfileBase();
 
 	void Initialize(std::string &filename);
